@@ -11,3 +11,16 @@ def nan_replace_df(t:pd.DataFrame):
                 t[c].fillna({c:t[c].mean()}, inplace=True)
             else:
                 t.fillna({c:t[c].mode()[0]},inplace=True)#mode returneaza un vector de module, il alegem pe primul cel mai frecvent
+
+
+
+# def calcul_ponderi(t:pd.Series):
+#     print(t)
+#     exit(0)
+
+def calcul_ponderi(t:pd.Series):
+    return t/t.sum()#operanti in serie rezultat in serie
+
+def diversitate(t:pd.Series):
+    #
+    return pd.Series([],["Shannon","Simpson","InvSimpson"])
