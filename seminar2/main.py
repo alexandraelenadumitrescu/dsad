@@ -1,8 +1,9 @@
 import pandas as pd
+from pycparser.ply.ctokens import t_DIVEQUAL
 
 pd.set_option("display.max_columns",None)
 
-from functii import nan_replace_df, calcul_ponderi
+from functii import nan_replace_df, calcul_ponderi,diversitate
 
 t=pd.read_csv("data_in/Religious.csv",index_col=0)
 #inlocuim valorile care lipsesc
@@ -49,3 +50,13 @@ t_judet = t_judet.apply(pd.to_numeric, errors='coerce')
 t_p_jud=t_judet.apply(func=lambda x: x/x.sum(), axis=1)
 
 t_p_jud.to_csv("data_out/Religious_p_county.csv")
+
+t_div_loc=t_p_loc[confesiuni].apply(func=diversitate,axis=1)#trimite doar coloanele numerice
+assert isinstance(t_div_loc,pd.DataFrame)
+print(t_div_loc)
+t_div_loc.insert(0,"Localitate",t["City"])
+t_div_loc.to_csv("data_out/Div_loc_County.csv")
+
+t_div_county=t_p_jud.apply(func=diversitate,axis=1)
+t_div_county.to_csv("data_out/Div_county.csv")
+
