@@ -67,3 +67,5 @@ industria_alimentara_loc_reg=industria_alimentara_loc.merge(coduri_judete,left_o
 cerinta5=industria_alimentara_loc_reg[industrii+["Populatie","Regiune"]].groupby(by="Regiune").apply(func=medie_ponderata,include_groups=False)
 print(cerinta5)
 cerinta5.to_csv("data_out/Cerinta5.csv")
+
+#cerinta 6
