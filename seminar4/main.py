@@ -69,3 +69,18 @@ print(cerinta5)
 cerinta5.to_csv("data_out/Cerinta5.csv")
 
 #cerinta 6
+
+#print(industria_alimentara_judet)
+
+total_national=industria_alimentara_judet.sum(axis=0)
+#print(total_national)
+#cerinta6=industria_alimentara_judet.apply(
+  #  func=lambda x:(x["Industrii"]/total_national[industrii])/( x["Populatie"]/total_national["Populatie"]),
+                                       #   axis=1
+#)
+cerinta6 = industria_alimentara_judet[industrii].apply(
+    lambda x: (x / total_national[industrii]) /
+              (industria_alimentara_judet.loc[x.name, "Populatie"] / total_national["Populatie"]),
+    axis=1
+)
+cerinta6.to_csv("data_out/Cerinta6.csv")
