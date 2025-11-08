@@ -1,27 +1,47 @@
-import os
 import numpy as np
-from func import tabelare_matrice
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# Verifică directorul curent
-print("Director curent:", os.getcwd())
+# Generează 1000 de valori din distribuția normală standard
+data = np.random.normal(loc=0, scale=1, size=1000)
+data2=np.random.normal(loc=0, scale=1, size=1000)
+data3 = np.random.normal(loc=0, scale=1, size=1000)
+data4= np.random.normal(loc=0, scale=1, size=1000)
+data5 = np.random.normal(loc=0, scale=1, size=1000)
+data6 = np.random.normal(loc=0, scale=1, size=1000)
+data7 = np.random.normal(loc=0, scale=1, size=1000)
 
-# Verifică dacă directorul out/ există
-print("Directorul 'out' există?", os.path.exists('out'))
+chi2=data**2
+chi22=data**2+data2**2
+chi23=chi22+data3**2
+chi24=chi23+data4**2
+chi25=chi24+data5**2
+chi26=chi25+data6**2
+chi27=chi26+data7**2
 
-# Verifică dacă este folder
-print("Este director?", os.path.isdir('out'))
 
-# Încearcă să salvezi fișierul
-matrice = np.array([[1, 2, 3], [4, 5, 6]])
-tabelare_matrice(matrice, nume_fisier="out/data_out.csv")
+# Setări estetice Seaborn
+sns.set(style="whitegrid")
 
-# Verifică dacă fișierul a fost creat
-print("Fișier creat în out/?", os.path.exists('out/data_out.csv'))
+# Histogramă + densitate kernel
+sns.histplot(data, kde=True, stat="density", bins=30, color="skyblue")
+sns.histplot(chi2, bins=50, kde=True, stat="density", color="orange")
+sns.histplot(chi22, bins=50, kde=True, stat="density", color="green")
+sns.histplot(chi23, bins=50, kde=True, stat="density", color="yellow")
+sns.histplot(chi24, bins=50, kde=True, stat="density", color="red")
+sns.histplot(chi25, bins=50, kde=True, stat="density", color="black")
+sns.histplot(chi26, bins=50, kde=True, stat="density", color="purple")
+sns.histplot(chi27, bins=50, kde=True, stat="density", color="brown")
 
-# Listează tot ce este în directorul out/
-print("\nConținutul directorului 'out':")
-if os.path.exists('out'):
-    print(os.listdir('out'))
+plt.title("Distribuția Chi-pătrat (1 grad de libertate)")
+plt.xlabel("Z^2")
+plt.ylabel("Densitate")
+plt.show()
 
-# Caută fișierul în directorul principal
-print("\nFișierul e în directorul principal?", os.path.exists('data_out.csv'))
+
+# Titlu și axe
+plt.title("Distribuția Normală Standard")
+plt.xlabel("Valori")
+plt.ylabel("Densitate")
+
+plt.show()
