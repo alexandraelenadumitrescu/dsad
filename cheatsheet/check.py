@@ -17,6 +17,38 @@ print(pd.DataFrame(x_c,columns=variabile_numerice).describe())
 tabelare_matrice(x,tabel_date.index,variabile_numerice,"out/x_std.csv")
 
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+# x = matricea ta de valori numerice
+# variabile_numerice = lista cu numele coloanelor
+
+# 1️⃣ calculează matricea de corelație
+r = np.corrcoef(x, rowvar=False)
+v=np.cov(x,rowvar=False)
+# 2️⃣ transformă într-un DataFrame pentru etichete
+import pandas as pd
+df_r = pd.DataFrame(r, index=variabile_numerice, columns=variabile_numerice)
+df_v = pd.DataFrame(r, index=variabile_numerice, columns=variabile_numerice)
+
+# 3️⃣ plot heatmap
+#plt.figure(figsize=(12,10))
+#sns.heatmap(df_r, annot=True, fmt=".2f", cmap="coolwarm", cbar=True)
+#sns.heatmap(df_v, annot=True, fmt=".2f", cmap="coolwarm", cbar=True)
+#plt.title("Matricea de corelație")
+
+plt.figure(figsize=(16, 7))
+
+plt.subplot(1, 2, 1)
+sns.heatmap(df_r, cmap="coolwarm", annot=False, cbar=True)
+plt.title("Matricea de corelație")
+
+plt.subplot(1, 2, 2)
+sns.heatmap(df_v, cmap="coolwarm", annot=False, cbar=True)
+plt.title("Matricea de covarianță")
+plt.tight_layout()
+plt.show()
 
 
 #print(x,type(x))
@@ -28,3 +60,35 @@ tabelare_matrice(x,tabel_date.index,variabile_numerice,"out/x_std.csv")
 #print(variabile_numerice)
 #print(variabile_numerice,type(variabile_numerice))
 #print(tabel_date)
+
+
+
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# x = datele numerice (np.ndarray)
+# variabile_numerice = lista cu numele coloanelor
+
+# 1️⃣ Matricea de corelație
+corr = np.corrcoef(x, rowvar=False)
+df_corr = pd.DataFrame(corr, index=variabile_numerice, columns=variabile_numerice)
+
+# 2️⃣ Matricea de covarianță
+cov = np.cov(x, rowvar=False)
+df_cov = pd.DataFrame(cov, index=variabile_numerice, columns=variabile_numerice)
+
+# 3️⃣ Afișare ambele în două grafice
+plt.figure(figsize=(16, 7))
+
+plt.subplot(1, 2, 1)
+sns.heatmap(df_corr, cmap="coolwarm", annot=False, cbar=True)
+plt.title("Matricea de corelație")
+
+plt.subplot(1, 2, 2)
+sns.heatmap(df_cov, cmap="coolwarm", annot=False, cbar=True)
+plt.title("Matricea de covarianță")
+
+plt.tight_layout()
+plt.show()
