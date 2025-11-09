@@ -1,47 +1,30 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+from operator import countOf
 
-# Generează 1000 de valori din distribuția normală standard
-data = np.random.normal(loc=0, scale=1, size=1000)
-data2=np.random.normal(loc=0, scale=1, size=1000)
-data3 = np.random.normal(loc=0, scale=1, size=1000)
-data4= np.random.normal(loc=0, scale=1, size=1000)
-data5 = np.random.normal(loc=0, scale=1, size=1000)
-data6 = np.random.normal(loc=0, scale=1, size=1000)
-data7 = np.random.normal(loc=0, scale=1, size=1000)
-
-chi2=data**2
-chi22=data**2+data2**2
-chi23=chi22+data3**2
-chi24=chi23+data4**2
-chi25=chi24+data5**2
-chi26=chi25+data6**2
-chi27=chi26+data7**2
+from func import exporta,standardizare_centrala,tabelare_matrice,calcul_corelatii_covariante,nan_replace
+import pandas as pd
+import  numpy as np
+tabel_date=pd.read_csv("in/Teritorial_2022.csv",index_col=0)
+tabel_date.to_csv("out/tabel.csv")
+variabile_numerice=list(tabel_date.columns[3:])#intoarce o lista de nume de coloane de la 3 incolo,vreau sa iau doar datele numerice, de la coloana 3 pana la sfarsit
+x=tabel_date[variabile_numerice].values
+exporta(x,variabile_numerice,"viz.csv")
+print(pd.DataFrame(x,columns=variabile_numerice).describe())
+x_std=standardizare_centrala(x)
+print(pd.DataFrame(x_std,columns=variabile_numerice).describe())
+#centrare
+x_c=standardizare_centrala(x,scal=False)
+print(pd.DataFrame(x_c,columns=variabile_numerice).describe())
+tabelare_matrice(x,tabel_date.index,variabile_numerice,"out/x_std.csv")
 
 
-# Setări estetice Seaborn
-sns.set(style="whitegrid")
-
-# Histogramă + densitate kernel
-sns.histplot(data, kde=True, stat="density", bins=30, color="skyblue")
-sns.histplot(chi2, bins=50, kde=True, stat="density", color="orange")
-sns.histplot(chi22, bins=50, kde=True, stat="density", color="green")
-sns.histplot(chi23, bins=50, kde=True, stat="density", color="yellow")
-sns.histplot(chi24, bins=50, kde=True, stat="density", color="red")
-sns.histplot(chi25, bins=50, kde=True, stat="density", color="black")
-sns.histplot(chi26, bins=50, kde=True, stat="density", color="purple")
-sns.histplot(chi27, bins=50, kde=True, stat="density", color="brown")
-
-plt.title("Distribuția Chi-pătrat (1 grad de libertate)")
-plt.xlabel("Z^2")
-plt.ylabel("Densitate")
-plt.show()
 
 
-# Titlu și axe
-plt.title("Distribuția Normală Standard")
-plt.xlabel("Valori")
-plt.ylabel("Densitate")
-
-plt.show()
+#print(x,type(x))
+#print(countOf)
+#print(np.isnan(x).sum())
+#nan_replace(x)
+#print(x)
+#print(np.isnan(x).sum())
+#print(variabile_numerice)
+#print(variabile_numerice,type(variabile_numerice))
+#print(tabel_date)
