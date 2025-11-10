@@ -47,8 +47,11 @@ def corelograma(t:pd.DataFrame,titlu="corelograma",vmin=-1,cmap="RdYlBu",annot=T
     heatmap(t,vmin=vmin,vmax=1,cmap=cmap,annot=annot,ax=ax)
 
 
-
-
+def scatterplot(t:pd.DataFrame,x="C1",y="C2",titlu="PLot scoruri"):
+    f = plt.figure(figsize=(9, 6))
+    ax = f.add_subplot(1, 1, 1,aspect=1)
+    ax.set_title(titlu, color="b", fontsize=18)
+    ax.scatter(t[x],t[y],c="r")
 
 def show():
     plt.show()
