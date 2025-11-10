@@ -23,7 +23,7 @@ def acp(x:np.ndarray, scal=True, ddof=0):#pentru esantion n-1, pentru populatie 
     print(k)
     alpha=valp[k]
     a=vecp[:,k]
-    return alpha,a
+    return x_,r_v,alpha,a
 
 def tabelare_varianta(alpha:np.ndarray):#pe prima col am prima varianta, pe a doua 1+2 comulat
     m=len(alpha)
@@ -35,3 +35,11 @@ def tabelare_varianta(alpha:np.ndarray):#pe prima col am prima varianta, pe a do
         "procent cumular":np.cumsum(procent)
     },index=["C"+str(i) for i in range(m)])
     return t
+
+
+def salvare_ndarray(x:np.ndarray,nume_linii,nume_coloane,nume_index=None,nume_fisier_output=None):
+    temp = pd.DataFrame(x,nume_linii,nume_coloane)
+    temp.index.name=nume_index
+    if(nume_fisier_output is not None):
+        temp.to_csv(nume_fisier_output)
+    return temp# sa imi si intoarca un dataframe si sa si salveze un csv daca ii dau cale pentru salvare altfel doar imi returneaza un dataframe

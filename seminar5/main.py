@@ -3,8 +3,8 @@ import sys
 import numpy as np
 import pandas as pd
 
-from functii import nan_replace_df, acp, tabelare_varianta
-from grafice import plot_varianta, show
+from functii import nan_replace_df, acp, tabelare_varianta, salvare_ndarray
+from grafice import plot_varianta, show, corelograma
 
 np.set_printoptions(3,sys.maxsize,suppress=True)
 pd.set_option("display.max_columns",None)
@@ -17,10 +17,16 @@ variabile_observate=list(set_date)[3:]
 x=set_date[variabile_observate].values
 
 #print(x)
-alpha,a=acp(x)
+x_,r_v,alpha,a=acp(x)
+
+t_r=salvare_ndarray(r_v,variabile_observate,variabile_observate,"Indicatori","data_out/R.csv")#matrice de co
 
 #analiza variantei componentelor
 t_varianta=tabelare_varianta(alpha)
 t_varianta.round(3).to_csv("data_out/Varianta.csv")
 plot_varianta(alpha)
+
+corelograma(t_r,annot=len(variabile_observate)<10)
 show()
+
+#show()
