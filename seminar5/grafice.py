@@ -54,4 +54,4 @@ def scatterplot(t:pd.DataFrame,x="C1",y="C2",titlu="PLot scoruri"):
     ax.scatter(t[x],t[y],c="r")
 
 def show():
-    plt.show()
+    plt.show()#
