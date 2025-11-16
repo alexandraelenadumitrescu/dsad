@@ -1,0 +1,365 @@
+Voi analiza folderul pentru a înțelege ce conține și apoi voi crea un cheat sheet complet pentru examenul tău!# 📊 CHEAT SHEET ULTIM - Data Science cu Pandas & NumPy
+
+## 🎯 VIZIUNE MACRO: WORKFLOW-UL DE ANALIZĂ A DATELOR
+
+```
+┌─────────────────┐
+│  DATE BRUTE     │  (CSV-uri cu date despre industrie, populație)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  1. ÎNCĂRCARE   │  pd.read_csv() → DataFrame
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  2. CURĂȚARE    │  Filtrare, eliminare valori lipsa (NaN)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  3. TRANSFORMARE│  Calcule, normalizări, ponderi
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  4. COMBINARE   │  Merge/Join multiple tabele
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  5. AGREGARE    │  GroupBy - sumarizare pe categorii
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  6. EXPORT      │  to_csv() → Rezultate finale
+└─────────────────┘
+```
+
+---
+
+## 📚 FUNCȚII ESENȚIALE - INPUT/OUTPUT
+
+### 🔵 **1. ÎNCĂRCAREA DATELOR**
+
+#### `pd.read_csv(filepath, index_col=0)`
+- **INPUT**: Cale către fișier CSV
+- **OUTPUT**: DataFrame
+- **DE CE**: Transformă date din format text în structură tabulară manipulabilă
+```python
+df = pd.read_csv("data_in/IndustriaAlimentara.csv", index_col=0)
+# index_col=0 → prima coloană devine index (rânduri)
+```
+
+---
+
+### 🔵 **2. FILTRAREA DATELOR**
+
+#### Filtrare cu Condiții Booleene
+- **INPUT**: DataFrame + condiție logică
+- **OUTPUT**: DataFrame filtrat (doar rândurile care îndeplinesc condiția)
+- **DE CE**: Eliminăm date irelevante/invalide
+
+```python
+# Calculăm suma pe fiecare rând
+numar_angajati = df[industrii].apply(func=lambda x: x.sum(), axis=1)
+
+# Filtrăm: păstrăm doar localitățile cu angajați > 0
+df_filtrat = df[numar_angajati > 0]
+```
+
+**Visual**:
+```
+ÎNAINTE:                    DUPĂ:
+Oraș A: 100 angajați   →   Oraș A: 100 angajați
+Oraș B: 0 angajați     →   (eliminat)
+Oraș C: 50 angajați    →   Oraș C: 50 angajați
+```
+
+---
+
+### 🔵 **3. APLICAREA FUNCȚIILOR**
+
+#### `apply(func, axis)`
+- **INPUT**: Funcție + direcție (axis=0 coloane, axis=1 rânduri)
+- **OUTPUT**: Serie sau DataFrame cu rezultatele
+- **DE CE**: Aplicăm aceeași operație pe toate rândurile/coloanele
+
+```python
+# NORMALIZARE: fiecare valoare împărțită la suma rândului
+df_normalizat = df[industrii].apply(func=lambda x: x/x.sum(), axis=1)
+```
+
+**Visual**:
+```
+ÎNAINTE (valori absolute):          DUPĂ (procente):
+Industrie1  Industrie2             Industrie1  Industrie2
+    100         50        →            0.67        0.33
+    200        100        →            0.67        0.33
+```
+
+---
+
+### 🔵 **4. GESTIONAREA VALORILOR LIPSĂ**
+
+#### `fillna(valoare, inplace=True)`
+- **INPUT**: Valoare de înlocuire
+- **OUTPUT**: DataFrame fără NaN
+- **DE CE**: Evităm erori în calcule; NaN apare când împărțim la 0 sau avem date lipsă
+
+```python
+df.fillna(0, inplace=True)  # Înlocuiește toate NaN cu 0
+```
+
+---
+
+### 🔵 **5. COMBINAREA TABELELOR (JOIN)**
+
+#### `merge(alt_df, left_on, right_on, left_index, right_index)`
+- **INPUT**: Două DataFrame-uri + coloana/index-ul de legătură
+- **OUTPUT**: DataFrame combinat
+- **DE CE**: Unim informații din surse diferite (ex: populație + industrie)
+
+```python
+# Jonctiune pe INDEX
+df_complet = industria_alimentara.merge(populatia, 
+                                        left_index=True, 
+                                        right_index=True)
+
+# Jonctiune pe COLOANĂ
+df_complet = df1.merge(coduri_judete, 
+                       left_on="Judet",      # coloană din df1
+                       right_index=True)     # index din coduri_judete
+```
+
+**Visual**:
+```
+TABEL 1 (Industrie):        TABEL 2 (Populație):      REZULTAT:
+Index  Angajați            Index  Populație          Index  Angajați  Populație
+Oraș1    100               Oraș1    50000            Oraș1    100       50000
+Oraș2    200               Oraș2    80000            Oraș2    200       80000
+```
+
+---
+
+### 🔵 **6. AGREGAREA CU GROUPBY**
+
+#### `groupby(by).sum()` / `.apply(func)`
+- **INPUT**: Coloana de grupare + funcție de agregare
+- **OUTPUT**: DataFrame/Serie agregat
+- **DE CE**: Sumarizăm date la nivel superior (ex: de la localități la județe)
+
+```python
+# Grupăm localități pe județe și sumăm angajații
+df_judet = df[industrii + ["Populatie", "Judet"]].groupby(by="Judet").sum()
+```
+
+**Visual**:
+```
+ÎNAINTE (Localități):               DUPĂ (Județe):
+Oraș1  Judet: BUC  Angajați: 100   BUC  Angajați: 300
+Oraș2  Judet: BUC  Angajați: 200   CJ   Angajați: 150
+Oraș3  Judet: CJ   Angajați: 150
+```
+
+---
+
+### 🔵 **7. CALCULE PE RÂNDURI/COLOANE**
+
+#### `axis=0` vs `axis=1`
+- **axis=1**: Operație pe fiecare RÂND (→ horizontal)
+- **axis=0**: Operație pe fiecare COLOANĂ (↓ vertical)
+
+```python
+# RÂND: Împărțim fiecare industrie din rând la Populație
+pondere = df.apply(func=lambda x: x[industrii] / x["Populatie"], axis=1)
+
+# COLOANĂ: Sumăm toate valorile pe verticală
+total_national = df.sum(axis=0)
+```
+
+---
+
+### 🔵 **8. GĂSIREA MAXIMULUI**
+
+#### `argmax()` / `idxmax()`
+- **INPUT**: Serie sau DataFrame
+- **OUTPUT**: INDEX-ul valorii maxime
+- **DE CE**: Identificăm categoria dominantă
+
+```python
+# Pentru fiecare județ, găsim industria cu cei mai mulți angajați
+activitate_principala = df.apply(func=lambda x: x.index[x.argmax()], axis=1)
+```
+
+**Visual**:
+```
+Județ BUC:  Panificatie: 500, Lactate: 300, Carne: 200
+                         ↑ MAX
+Rezultat: "Panificatie"
+```
+
+---
+
+### 🔵 **9. SORTAREA**
+
+#### `sort_values(by, ascending, inplace)`
+- **INPUT**: Coloană/Serie + direcție
+- **OUTPUT**: Date sortate
+- **DE CE**: Ordonăm rezultate (ex: județe cu cel mai mare pondere)
+
+```python
+serie.sort_values(inplace=True, ascending=False)  # Descrescător
+```
+
+---
+
+### 🔵 **10. ADĂUGAREA COLOANELOR**
+
+#### `insert(loc, column_name, values)`
+- **INPUT**: Poziție + nume coloană + valori
+- **OUTPUT**: DataFrame modificat
+- **DE CE**: Adăugăm coloane calculate în poziții specifice
+
+```python
+df.insert(0, "Localitate", alte_valori)  # Inserează la început (poziția 0)
+```
+
+---
+
+### 🔵 **11. MEDIE PONDERATĂ**
+
+#### `np.average(array, weights)`
+- **INPUT**: Array + ponderi (weights)
+- **OUTPUT**: Medie ponderată
+- **DE CE**: Când contribuțiile nu sunt egale (ex: orașe mari contează mai mult)
+
+```python
+def medie_ponderata(t: pd.DataFrame):
+    x = t.values
+    m = np.average(x[:, :-1],           # toate coloanele minus ultima
+                   axis=0,               # pe verticală
+                   weights=x[:, -1])    # ultima coloană = ponderi
+    return pd.Series(m, t.columns[:-1])
+```
+
+**Visual**:
+```
+Oraș A: 10 angajați, Populație: 1000
+Oraș B: 50 angajați, Populație: 10000
+→ Medie simplă: (10+50)/2 = 30 ❌
+→ Medie ponderată: (10×1000 + 50×10000)/(1000+10000) = 48 ✅
+```
+
+---
+
+### 🔵 **12. EXPORTUL**
+
+#### `to_csv(filepath)`
+- **INPUT**: Cale fișier destinație
+- **OUTPUT**: Fișier CSV salvat
+- **DE CE**: Păstrăm rezultatele pentru rapoarte/analize ulterioare
+
+```python
+df.to_csv("data_out/Cerinta1.csv")
+```
+
+---
+
+## 🎓 PATTERN-URI COMUNE ÎN ANALIZE
+
+### **Pattern 1: Filtrare → Normalizare → Export**
+```python
+# Filtrare
+df_valid = df[conditie]
+
+# Normalizare (procente)
+df_norm = df_valid.apply(func=lambda x: x/x.sum(), axis=1)
+
+# Curățare + Export
+df_norm.fillna(0, inplace=True)
+df_norm.to_csv("output.csv")
+```
+
+### **Pattern 2: Merge → Calcul Pondere → Sortare**
+```python
+# Combinare date
+df_merge = df1.merge(df2, left_index=True, right_index=True)
+
+# Calcul indicator
+pondere = df_merge.apply(func=lambda x: x["Metric"]/x["Total"], axis=1)
+
+# Sortare + Export
+pondere.sort_values(ascending=False, inplace=True)
+pondere.to_csv("output.csv")
+```
+
+### **Pattern 3: GroupBy → Agregare → Identificare Max**
+```python
+# Agregare la nivel superior
+df_grupat = df.groupby(by="Categorie").sum()
+
+# Identificare dominant
+dominant = df_grupat.apply(func=lambda x: x.index[x.argmax()], axis=1)
+
+# Export
+dominant.to_csv("output.csv")
+```
+
+---
+
+## 💡 CONCEPTE CHEIE
+
+### **1. NORMALIZARE** 
+Transformăm valori absolute → procente/proporții pentru comparare corectă
+```python
+x / x.sum()  # Fiecare valoare / Total
+```
+
+### **2. PONDERE**
+Cât reprezintă o parte din total
+```python
+angajati / populatie  # Pondere angajați în populație
+```
+
+### **3. INDICE DE SPECIALIZARE (Location Quotient)**
+Compară proporția locală cu proporția națională
+```python
+(angajati_judet / total_angajati_judet) / (angajati_national / total_angajati_national)
+```
+- **> 1**: Județ specializat în acea industrie
+- **< 1**: Județ sub-reprezentat
+
+### **4. AXIS în Pandas**
+- **axis=1**: "Pentru fiecare RÂND, du-te pe orizontală și calculează..."
+- **axis=0**: "Pentru fiecare COLOANĂ, du-te pe verticală și calculează..."
+
+---
+
+## 🚀 TIPS PENTRU EXAMEN
+
+1. **Verifică tipul**: `isinstance(df, pd.DataFrame)` sau `pd.Series`
+2. **Debug rapid**: `print(df.head())`, `print(df.columns)`, `print(df.shape)`
+3. **Înțelege cerința**: Vrei aggregate (sum, mean) sau transformare (normalizare)?
+4. **Verifică NaN**: După orice împărțire, folosește `fillna(0)`
+5. **Index vs Coloană**: În merge, decide dacă faci join pe index sau pe valori
+6. **Lambda functions**: `lambda x: operatie_pe_x` - x este rândul/coloana curentă
+
+---
+
+## 📋 CHECKLIST RAPID
+
+- [ ] Am încărcat toate CSV-urile necesare?
+- [ ] Am setat `index_col` corect?
+- [ ] Am filtrat datele invalide?
+- [ ] Am gestionat NaN după calcule?
+- [ ] Am folosit axis-ul corect (0 sau 1)?
+- [ ] Am făcut merge corect (pe ce coloană/index)?
+- [ ] Am sortat rezultatele dacă era necesar?
+- [ ] Am exportat cu `to_csv()`?
+
+---
+
+**Succes la examen! 🎉** Această schemă acoperă toate pattern-urile din codul tău și te pregătește pentru cerințe similare!
