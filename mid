@@ -1,0 +1,1401 @@
+"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                     TEMPLATE EXAMEN DATA SCIENCE                             ║
+║                     Toate funcțiile de care ai nevoie!                       ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+INSTRUCȚIUNI:
+1. Copiază acest template pentru fiecare examen
+2. Înlocuiește "TODO" cu datele tale
+3. Apelează funcțiile pregătite
+4. Salvează des!
+
+Autor: Alexandra
+Data: 2025-11-16
+"""
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from typing import Union, List, Tuple
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                          0. CONFIGURARE INIȚIALĂ
+# ═══════════════════════════════════════════════════════════════════════════
+
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', None)
+pd.set_option('display.max_rows', 100)
+pd.set_option('display.float_format', '{:.2f}'.format)
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                          1. FUNCȚII DE DEBUGGING
+# ═══════════════════════════════════════════════════════════════════════════
+
+def debug_df(df: pd.DataFrame, name: str = "DataFrame") -> None:
+    """
+    🔍 FUNCȚIE DE DEBUG - Vezi tot despre un DataFrame
+    
+    📥 INPUT:
+        - df: DataFrame-ul de analizat
+        - name: Nume descriptiv pentru afișare
+    
+    📤 OUTPUT:
+        - Printează informații complete (nu returnează nimic)
+    
+    🎯 CÂND O FOLOSEȘTI:
+        - Când ai primit un DataFrame și vrei să vezi ce conține
+        - După fiecare operație importantă (merge, groupby, etc.)
+        - Când nu înțelegi de ce nu merge ceva
+    
+    📊 VIZUAL:
+        DataFrame "Date Industrie" (150 rows x 8 cols)
+        ┌──────────┬─────────┬────────┬───────┐
+        │  Index   │  Carne  │ Peste  │  ...  │
+        ├──────────┼─────────┼────────┼───────┤
+        │  12345   │   100   │   50   │  ...  │
+        │  12346   │   200   │   30   │  ...  │
+        └──────────┴─────────┴────────┴───────┘
+        
+    💡 EXEMPLU:
+        debug_df(industria_alimentara, "Date Industrie")
+    """
+    print(f"\n{'='*80}")
+    print(f"🔍 {name.upper()}")
+    print(f"{'='*80}")
+    print(f"📊 Shape (rânduri × coloane): {df.shape}")
+    print(f"📋 Columns: {list(df.columns)}")
+    print(f"🔑 Index name: {df.index.name}")
+    print(f"💾 Memory usage: {df.memory_usage(deep=True).sum() / 1024:.2f} KB")
+    
+    print(f"\n📝 PRIMELE 3 RÂNDURI:")
+    print(df.head(3))
+    
+    print(f"\n📊 TIPURI DE DATE:")
+    print(df.dtypes)
+    
+    print(f"\n⚠️  VALORI NULL:")
+    null_counts = df.isnull().sum()
+    if null_counts.sum() > 0:
+        print(null_counts[null_counts > 0])
+    else:
+        print("✅ Nu există valori NULL")
+    
+    print(f"\n📈 STATISTICI NUMERICE:")
+    print(df.describe())
+    
+    print(f"{'='*80}\n")
+
+
+def compara_before_after(df_before: pd.DataFrame, df_after: pd.DataFrame, 
+                         operation: str = "Operație") -> None:
+    """
+    🔄 COMPARĂ ÎNAINTE ȘI DUPĂ O OPERAȚIE
+    
+    📥 INPUT:
+        - df_before: DataFrame înainte de operație
+        - df_after: DataFrame după operație
+        - operation: Numele operației
+    
+    📤 OUTPUT:
+        - Printează comparație (nu returnează nimic)
+    
+    📊 VIZUAL:
+        ÎNAINTE: 200 rows × 8 cols    →    DUPĂ: 150 rows × 8 cols
+        Diferență: -50 rows (-25%)
+    
+    💡 EXEMPLU:
+        df_filtrat = filtrare_angajati_pozitivi(df)
+        compara_before_after(df, df_filtrat, "Filtrare angajați > 0")
+    """
+    print(f"\n{'─'*80}")
+    print(f"🔄 COMPARAȚIE: {operation}")
+    print(f"{'─'*80}")
+    print(f"📊 ÎNAINTE: {df_before.shape[0]:,} rânduri × {df_before.shape[1]} coloane")
+    print(f"📊 DUPĂ:    {df_after.shape[0]:,} rânduri × {df_after.shape[1]} coloane")
+    
+    diff_rows = df_after.shape[0] - df_before.shape[0]
+    diff_cols = df_after.shape[1] - df_before.shape[1]
+    
+    if diff_rows != 0:
+        pct_rows = (diff_rows / df_before.shape[0]) * 100
+        print(f"📉 Diferență rânduri: {diff_rows:+,} ({pct_rows:+.1f}%)")
+    
+    if diff_cols != 0:
+        print(f"📉 Diferență coloane: {diff_cols:+,}")
+    
+    print(f"{'─'*80}\n")
+
+
+def verifica_rezultat(df: Union[pd.DataFrame, pd.Series], 
+                      tip_asteptat: str = "DataFrame",
+                      trebuie_sa_aiba_date: bool = True) -> bool:
+    """
+    ✅ VERIFICĂ DACĂ REZULTATUL E VALID
+    
+    📥 INPUT:
+        - df: Rezultatul de verificat
+        - tip_asteptat: "DataFrame" sau "Series"
+        - trebuie_sa_aiba_date: True dacă nu trebuie să fie gol
+    
+    📤 OUTPUT:
+        - True dacă e valid, False altfel
+    
+    💡 EXEMPLU:
+        result = calculeaza_ceva(df)
+        if verifica_rezultat(result, "Series", True):
+            result.to_csv("output.csv")
+    """
+    valid = True
+    
+    # Verifică tipul
+    if tip_asteptat == "DataFrame" and not isinstance(df, pd.DataFrame):
+        print(f"❌ EROARE: Așteptat DataFrame, primit {type(df).__name__}")
+        valid = False
+    elif tip_asteptat == "Series" and not isinstance(df, pd.Series):
+        print(f"❌ EROARE: Așteptat Series, primit {type(df).__name__}")
+        valid = False
+    
+    # Verifică dacă are date
+    if trebuie_sa_aiba_date and len(df) == 0:
+        print(f"❌ EROARE: Rezultatul este gol!")
+        valid = False
+    
+    # Verifică NaN
+    if isinstance(df, pd.DataFrame):
+        nan_count = df.isnull().sum().sum()
+    else:
+        nan_count = df.isnull().sum()
+    
+    if nan_count > 0:
+        print(f"⚠️  WARNING: {nan_count} valori NaN în rezultat")
+    
+    if valid:
+        print(f"✅ Rezultat valid: {type(df).__name__} cu {len(df)} elemente")
+    
+    return valid
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                    2. FUNCȚII DE ÎNCĂRCARE DATE
+# ═══════════════════════════════════════════════════════════════════════════
+
+def incarca_csv_safe(filepath: str, index_col: int = 0, 
+                     encoding: str = 'utf-8') -> pd.DataFrame:
+    """
+    📂 ÎNCARCĂ CSV CU GESTIONARE ERORI
+    
+    📥 INPUT:
+        - filepath: Calea către fișier (ex: "data_in/fisier.csv")
+        - index_col: Care coloană devine index (0 = prima, None = niciuna)
+        - encoding: Encodingul fișierului (utf-8, latin1, cp1252)
+    
+    📤 OUTPUT:
+        - DataFrame încărcat SAU None dacă a eșuat
+    
+    📊 VIZUAL:
+        CSV File                    DataFrame
+        ┌────────────┐             ┌──────────┬─────┐
+        │ ID,Nume    │             │  Index   │Nume │
+        │ 1,Ana      │    →        ├──────────┼─────┤
+        │ 2,Ion      │             │    1     │ Ana │
+        └────────────┘             │    2     │ Ion │
+                                   └──────────┴─────┘
+    
+    💡 EXEMPLU:
+        df = incarca_csv_safe("data_in/IndustriaAlimentara.csv", index_col=0)
+        if df is not None:
+            print("✅ Date încărcate!")
+    """
+    try:
+        df = pd.read_csv(filepath, index_col=index_col, encoding=encoding)
+        print(f"✅ Fișier încărcat: {filepath}")
+        print(f"   Shape: {df.shape}")
+        return df
+    except FileNotFoundError:
+        print(f"❌ EROARE: Fișierul nu există: {filepath}")
+        return None
+    except Exception as e:
+        print(f"❌ EROARE la încărcare: {e}")
+        return None
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                    3. FUNCȚII DE FILTRARE
+# ═══════════════════════════════════════════════════════════════════════════
+
+def filtrare_suma_coloane_pozitiva(df: pd.DataFrame, 
+                                    coloane: List[str]) -> pd.DataFrame:
+    """
+    🔍 FILTREAZĂ RÂNDURI CU SUMA POZITIVĂ
+    
+    📥 INPUT:
+        - df: DataFrame-ul de filtrat
+        - coloane: Lista cu numele coloanelor de sumat
+    
+    📤 OUTPUT:
+        - DataFrame filtrat (doar rânduri cu sumă > 0)
+    
+    📊 VIZUAL:
+        ÎNAINTE:                          DUPĂ:
+        ┌──────┬──────┬──────┐          ┌──────┬──────┬──────┐
+        │ Oraș │Carne │Peste │          │ Oraș │Carne │Peste │
+        ├──────┼──────┼──────┤          ├──────┼──────┼──────┤
+        │  A   │ 100  │  50  │ → 150   │  A   │ 100  │  50  │ ✅
+        │  B   │  0   │  0   │ →   0   │  C   │  0   │  30  │ ✅
+        │  C   │  0   │  30  │ →  30   └──────┴──────┴──────┘
+        └──────┴──────┴──────┘          (Orașul B eliminat)
+    
+    🎯 CÂND O FOLOSEȘTI:
+        - Eliminare localități fără angajați
+        - Eliminare date incomplete/invalide
+    
+    💡 EXEMPLU:
+        industrii = ['Carne', 'Peste', 'Lactate', 'Panificatie']
+        df_valid = filtrare_suma_coloane_pozitiva(df, industrii)
+    """
+    # Calculăm suma pe coloanele specificate
+    suma = df[coloane].sum(axis=1)
+    
+    # Filtrăm
+    df_filtrat = df[suma > 0].copy()
+    
+    print(f"🔍 Filtrare: {len(df)} → {len(df_filtrat)} rânduri "
+          f"(eliminate: {len(df) - len(df_filtrat)})")
+    
+    return df_filtrat
+
+
+def filtrare_multipla_conditii(df: pd.DataFrame, 
+                               conditii: List[Tuple[str, str, any]]) -> pd.DataFrame:
+    """
+    🎯 FILTRARE CU MULTIPLE CONDIȚII
+    
+    📥 INPUT:
+        - df: DataFrame-ul de filtrat
+        - conditii: Lista de tuple (coloana, operator, valoare)
+                   Operatori: '>', '<', '>=', '<=', '==', '!='
+    
+    📤 OUTPUT:
+        - DataFrame filtrat
+    
+    📊 VIZUAL:
+        CONDIȚII: Populatie > 10000 AND Carne > 50
+        
+        ÎNAINTE (100 rânduri)  →  DUPĂ (25 rânduri)
+        Păstrează doar rândurile care îndeplinesc TOATE condițiile
+    
+    💡 EXEMPLU:
+        conditii = [
+            ('Populatie', '>', 10000),
+            ('Carne', '>=', 50),
+            ('Judet', '==', 'BUC')
+        ]
+        df_filtrat = filtrare_multipla_conditii(df, conditii)
+    """
+    mask = pd.Series([True] * len(df), index=df.index)
+    
+    for col, op, val in conditii:
+        if op == '>':
+            mask &= (df[col] > val)
+        elif op == '<':
+            mask &= (df[col] < val)
+        elif op == '>=':
+            mask &= (df[col] >= val)
+        elif op == '<=':
+            mask &= (df[col] <= val)
+        elif op == '==':
+            mask &= (df[col] == val)
+        elif op == '!=':
+            mask &= (df[col] != val)
+    
+    df_filtrat = df[mask].copy()
+    
+    print(f"🎯 Filtrare cu {len(conditii)} condiții: "
+          f"{len(df)} → {len(df_filtrat)} rânduri")
+    
+    return df_filtrat
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                    4. FUNCȚII DE TRANSFORMARE
+# ═══════════════════════════════════════════════════════════════════════════
+
+def normalizare_pe_rand(df: pd.DataFrame, coloane: List[str], 
+                        inlocuire_nan: float = 0) -> pd.DataFrame:
+    """
+    📊 NORMALIZARE: Transformă valori absolute → procente
+    
+    📥 INPUT:
+        - df: DataFrame-ul
+        - coloane: Coloanele de normalizat
+        - inlocuire_nan: Cu ce înlocuim NaN (apare când suma = 0)
+    
+    📤 OUTPUT:
+        - DataFrame cu coloanele normalizate (valori între 0 și 1)
+    
+    📊 VIZUAL:
+        ÎNAINTE (Valori absolute):        DUPĂ (Proporții):
+        ┌──────┬──────┬──────┐           ┌──────┬──────┬──────┐
+        │ Oraș │Carne │Peste │           │ Oraș │Carne │Peste │
+        ├──────┼──────┼──────┤           ├──────┼──────┼──────┤
+        │  A   │ 60   │ 40   │ (Σ=100)  │  A   │ 0.6  │ 0.4  │
+        │  B   │ 200  │ 100  │ (Σ=300)  │  B   │ 0.67 │ 0.33 │
+        └──────┴──────┴──────┘           └──────┴──────┴──────┘
+        
+        Formula: valoare_nouă = valoare_veche / suma_rândului
+    
+    🎯 CÂND O FOLOSEȘTI:
+        - Calculare procente
+        - Comparare proporții între entități de dimensiuni diferite
+        - Cerințe de forma "procentul de angajați pe fiecare activitate"
+    
+    💡 EXEMPLU:
+        industrii = ['Carne', 'Peste', 'Lactate']
+        df_procente = normalizare_pe_rand(df, industrii, inlocuire_nan=0)
+    """
+    df_norm = df.copy()
+    
+    # Normalizăm: fiecare valoare / suma rândului
+    df_norm[coloane] = df[coloane].apply(
+        lambda x: x / x.sum() if x.sum() > 0 else x,
+        axis=1
+    )
+    
+    # Înlocuim NaN
+    df_norm[coloane] = df_norm[coloane].fillna(inlocuire_nan)
+    
+    print(f"📊 Normalizare pe {len(coloane)} coloane")
+    print(f"   Range valori: [{df_norm[coloane].min().min():.3f}, "
+          f"{df_norm[coloane].max().max():.3f}]")
+    
+    return df_norm
+
+
+def calculeaza_pondere(df: pd.DataFrame, 
+                      col_numerator: str, 
+                      col_denominator: str,
+                      nume_noua_coloana: str = "Pondere") -> pd.Series:
+    """
+    ➗ CALCULEAZĂ PONDERE (RAPORT ÎNTRE DOUĂ COLOANE)
+    
+    📥 INPUT:
+        - df: DataFrame-ul
+        - col_numerator: Coloana de la numărător
+        - col_denominator: Coloana de la numitor
+        - nume_noua_coloana: Numele rezultatului
+    
+    📤 OUTPUT:
+        - Series cu ponderile calculate
+    
+    📊 VIZUAL:
+        ┌──────┬──────────┬──────────┐     ┌──────┬─────────┐
+        │ Oraș │ Angajați │Populație │     │ Oraș │ Pondere │
+        ├──────┼──────────┼──────────┤  →  ├──────┼─────────┤
+        │  A   │   1000   │  50000   │     │  A   │  0.02   │ (2%)
+        │  B   │   500    │  100000  │     │  B   │  0.005  │ (0.5%)
+        └──────┴──────────┴──────────┘     └──────┴─────────┘
+        
+        Formula: Pondere = Angajați / Populație
+    
+    🎯 CÂND O FOLOSEȘTI:
+        - "Ponderea angajaților în populație"
+        - "Rata de..." / "Procentul de..."
+        - Orice raport între două mărimi
+    
+    💡 EXEMPLU:
+        pondere = calculeaza_pondere(df, 'Angajati_Total', 'Populatie', 'Pondere_Angajati')
+    """
+    # Calculăm ponderea
+    pondere = df[col_numerator] / df[col_denominator]
+    
+    # Înlocuim inf și nan (apar când împărțim la 0)
+    pondere = pondere.replace([np.inf, -np.inf], 0)
+    pondere = pondere.fillna(0)
+    
+    pondere.name = nume_noua_coloana
+    
+    print(f"➗ Pondere calculată: {col_numerator} / {col_denominator}")
+    print(f"   Range: [{pondere.min():.4f}, {pondere.max():.4f}]")
+    print(f"   Medie: {pondere.mean():.4f}")
+    
+    return pondere
+
+
+def medie_ponderata(t: pd.DataFrame) -> pd.Series:
+    """
+    ⚖️ MEDIE PONDERATĂ (ultima coloană = ponderi)
+    
+    📥 INPUT:
+        - t: DataFrame cu:
+            * Coloanele 0 până la -2: Valorile de mediat
+            * Coloana -1 (ultima): Ponderile
+    
+    📤 OUTPUT:
+        - Series cu mediile ponderate pentru fiecare coloană
+    
+    📊 VIZUAL:
+        INPUT DataFrame:
+        ┌──────┬──────┬──────┬──────────┐
+        │ Oraș │Carne │Peste │Populație│ ← Ponderi
+        ├──────┼──────┼──────┼──────────┤
+        │  A   │  10  │  5   │  1000    │
+        │  B   │  50  │  30  │  10000   │
+        └──────┴──────┴──────┴──────────┘
+        
+        OUTPUT Series:
+        ┌──────┬────────────────────┐
+        │Carne │ (10×1000 + 50×10000) / (1000+10000) = 48.2 │
+        │Peste │ (5×1000 + 30×10000) / (1000+10000) = 29.1  │
+        └──────┴────────────────────┘
+        
+        Formula: media = Σ(valoare_i × pondere_i) / Σ(pondere_i)
+        
+        ⚠️ DIFERENȚA vs MEDIE SIMPLĂ:
+        Medie simplă Carne: (10+50)/2 = 30 ❌
+        Medie ponderată Carne: 48.2 ✅ (orașul B contează mai mult!)
+    
+    🎯 CÂND O FOLOSEȘTI:
+        - "Media ponderată folosind populația ca pondere"
+        - Când vrei medie dar entitățile mari contează mai mult
+        - Agregare la nivel superior păstrând importanța relativă
+    
+    💡 EXEMPLU:
+        # Grupăm pe regiuni și calculăm medie ponderată
+        medii = df.groupby('Regiune').apply(medie_ponderata, include_groups=False)
+    """
+    x = t.values  # Convertim în NumPy array pentru viteză
+    
+    # np.average: calculează media ponderată
+    m = np.average(
+        x[:, :-1],      # Toate coloanele MINUS ultima (valorile)
+        axis=0,          # Media pe coloane (↓ vertical)
+        weights=x[:, -1] # Ultima coloană (ponderile)
+    )
+    
+    return pd.Series(m, t.columns[:-1])
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                    5. FUNCȚII DE COMBINARE (MERGE/JOIN)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def merge_safe(df1: pd.DataFrame, df2: pd.DataFrame,
+               left_on: str = None, right_on: str = None,
+               left_index: bool = False, right_index: bool = False,
+               how: str = 'inner',
+               suffixes: Tuple[str, str] = ('_left', '_right')) -> pd.DataFrame:
+    """
+    🔗 MERGE (JOIN) SIGUR CU VERIFICĂRI
+    
+    📥 INPUT:
+        - df1, df2: DataFrame-urile de combinat
+        - left_on: Coloana din df1 pentru join (SAU None dacă folosim index)
+        - right_on: Coloana din df2 pentru join (SAU None dacă folosim index)
+        - left_index: True dacă joinăm pe index-ul df1
+        - right_index: True dacă joinăm pe index-ul df2
+        - how: Tipul de join:
+            * 'inner' - doar ce matches în ambele (implicit)
+            * 'left' - toate din df1, completează cu NaN
+            * 'right' - toate din df2, completează cu NaN
+            * 'outer' - toate din ambele
+        - suffixes: Sufixe pentru coloane duplicate
+    
+    📤 OUTPUT:
+        - DataFrame combinat
+    
+    📊 VIZUAL:
+        
+        ╔═══════════════════════════════════════════════════════════╗
+        ║  TIPURI DE JOIN (how parameter)                           ║
+        ╚═══════════════════════════════════════════════════════════╝
+        
+        TABEL 1 (Industrie):      TABEL 2 (Populație):
+        ┌──────┬─────────┐        ┌──────┬──────────┐
+        │ Oraș │Angajați │        │ Oraș │Populație│
+        ├──────┼─────────┤        ├──────┼──────────┤
+        │  A   │  100    │        │  A   │  5000    │
+        │  B   │  200    │        │  C   │  8000    │
+        └──────┴─────────┘        └──────┴──────────┘
+        
+        INNER JOIN (how='inner'):     LEFT JOIN (how='left'):
+        ┌──────┬─────────┬──────────┐ ┌──────┬─────────┬──────────┐
+        │ Oraș │Angajați │Populație│ │ Oraș │Angajați │Populație│
+        ├──────┼─────────┼──────────┤ ├──────┼─────────┼──────────┤
+        │  A   │  100    │  5000    │ │  A   │  100    │  5000    │
+        └──────┴─────────┴──────────┘ │  B   │  200    │  NaN     │
+        (Doar A - comun ambelor)       └──────┴─────────┴──────────┘
+                                       (Toate din stânga)
+        
+        OUTER JOIN (how='outer'):
+        ┌──────┬─────────┬──────────┐
+        │ Oraș │Angajați │Populație│
+        ├──────┼─────────┼──────────┤
+        │  A   │  100    │  5000    │
+        │  B   │  200    │  NaN     │
+        │  C   │  NaN    │  8000    │
+        └──────┴─────────┴──────────┘
+        (Toate din ambele)
+    
+    🎯 CÂND O FOLOSEȘTI:
+        - Combinare date din surse diferite
+        - Îmbogățire date (ex: adaug populație la industrie)
+        - Asociere coduri (ex: județ → regiune)
+    
+    💡 EXEMPLE:
+        # Join pe index (coduri SIRUTA)
+        df_full = merge_safe(industria, populatie, 
+                            left_index=True, right_index=True)
+        
+        # Join pe coloană
+        df_full = merge_safe(df1, coduri_judete,
+                            left_on='Judet', right_index=True,
+                            how='left')
+    """
+    print(f"🔗 Merge: {len(df1)} rows × {len(df2)} rows")
+    
+    # Executăm merge
+    df_merged = df1.merge(
+        df2,
+        left_on=left_on,
+        right_on=right_on,
+        left_index=left_index,
+        right_index=right_index,
+        how=how,
+        suffixes=suffixes
+    )
+    
+    print(f"   Rezultat: {len(df_merged)} rows × {df_merged.shape[1]} cols")
+    
+    # Verificări
+    if how == 'inner' and len(df_merged) < min(len(df1), len(df2)):
+        print(f"   ⚠️  WARNING: Pierdere date ({min(len(df1), len(df2)) - len(df_merged)} rânduri)")
+    
+    nan_cols = df_merged.columns[df_merged.isnull().any()].tolist()
+    if nan_cols:
+        print(f"   ⚠️  Coloane cu NaN după merge: {nan_cols}")
+    
+    return df_merged
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                    6. FUNCȚII DE AGREGARE (GROUPBY)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def agreg are_simpla(df: pd.DataFrame, 
+                    col_grupare: str,
+                    coloane_agregate: List[str],
+                    functie: str = 'sum') -> pd.DataFrame:
+    """
+    📊 AGREGARE SIMPLĂ LA NIVEL SUPERIOR
+    
+    📥 INPUT:
+        - df: DataFrame-ul
+        - col_grupare: Coloana după care grupăm (ex: 'Judet', 'Regiune')
+        - coloane_agregate: Coloanele de agregat
+        - functie: Funcția de agregare:
+            * 'sum' - sumă
+            * 'mean' - medie
+            * 'count' - număr
+            * 'min' / 'max' - min/max
+    
+    📤 OUTPUT:
+        - DataFrame agregat la nivel superior
+    
+    📊 VIZUAL:
+        ÎNAINTE (Nivel localități):
+        ┌──────┬──────┬──────┐
+        │ Oraș │Județ │Carne │
+        ├──────┼──────┼──────┤
+        │  A   │ BUC  │ 100  │
+        │  B   │ BUC  │ 200  │  } BUC: 100+200 = 300
+        │  C   │ CJ   │ 150  │  } CJ: 150
+        └──────┴──────┴──────┘
+               ↓ groupby('Judet').sum()
+        
+        DUPĂ (Nivel județe):
+        ┌──────┬──────┐
+        │Județ │Carne │
+        ├──────┼──────┤
+        │ BUC  │ 300  │
+        │ CJ   │ 150  │
+        └──────┴──────┘
+    
+    🎯 CÂND O FOLOSEȘTI:
+        - "La nivel de județ" → grupăm localitățile
+        - "La nivel de regiune" → grupăm județele
+        - "Total per categorie"
+    
+    💡 EXEMPLU:
+        # Agregăm localități → județe
+        df_judete = agregare_simpla(df, 'Judet', 
+                                    ['Carne', 'Peste', 'Populatie'], 
+                                    'sum')
+    """
+    func_dict = {
+        'sum': 'sum',
+        'mean': 'mean',
+        'count': 'count',
+        'min': 'min',
+        'max': 'max'
+    }
+    
+    if functie not in func_dict:
+        print(f"❌ Funcție invalidă: {functie}. Folosesc 'sum'")
+        functie = 'sum'
+    
+    # Selectăm coloanele și grupăm
+    df_agregat = df[coloane_agregate + [col_grupare]].groupby(
+        by=col_grupare
+    ).agg(func_dict[functie])
+    
+    print(f"📊 Agregare {functie.upper()}: {len(df)} → {len(df_agregat)} "
+          f"grupe după '{col_grupare}'")
+    
+    return df_agregat
+
+
+def gaseste_dominant_pe_grup(df: pd.DataFrame,
+                            col_grupare: str,
+                            coloane_competitie: List[str]) -> pd.Series:
+    """
+    🏆 GĂSEȘTE CATEGORIA DOMINANTĂ PENTRU FIECARE GRUP
+    
+    📥 INPUT:
+        - df: DataFrame agregat (deja la nivel superior!)
+        - col_grupare: Coloana de grupare
+        - coloane_competitie: Coloanele între care căutăm maximul
+    
+    📤 OUTPUT:
+        - Series cu numele coloanei dominante pentru fiecare grup
+    
+    📊 VIZUAL:
+        INPUT (DataFrame agregat la nivel județe):
+        ┌──────┬──────┬──────┬─────────────┐
+        │Județ │Carne │Peste │ Panificatie │
+        ├──────┼──────┼──────┼─────────────┤
+        │ BUC  │ 500  │ 300  │    800      │ → MAX: Panificatie
+        │ CJ   │ 600  │ 200  │    400      │ → MAX: Carne
+        │ TM   │ 300  │ 450  │    200      │ → MAX: Peste
+        └──────┴──────┴──────┴─────────────┘
+                ↓
+        OUTPUT (Series):
+        ┌──────┬─────────────┐
+        │Județ │ Activitate  │
+        ├──────┼─────────────┤
+        │ BUC  │Panificatie  │
+        │ CJ   │ Carne       │
+        │ TM   │ Peste       │
+        └──────┴─────────────┘
+    
+    🎯 CÂND O FOLOSEȘTI:
+        - "Activitatea cu cei mai mulți angajați la nivel de județ"
+        - "Industria dominantă per regiune"
+        - Orice "care dintre X are valoarea maximă?"
+    
+    💡 EXEMPLU:
+        # 1. Agregăm la nivel județ
+        df_judet = agregare_simpla(df, 'Judet', industrii, 'sum')
+        
+        # 2. Găsim activitatea dominantă
+        dominant = gaseste_dominant_pe_grup(df_judet, 'Judet', industrii)
+    """
+    # Agregăm dacă nu e deja agregat
+    if col_grupare in df.columns:
+        df_agregat = df.groupby(col_grupare)[coloane_competitie].sum()
+    else:
+        df_agregat = df[coloane_competitie]
+    
+    # Găsim coloana cu valoarea maximă pentru fiecare rând
+    dominant = df_agregat.apply(
+        lambda x: x.index[x.argmax()],  # x.argmax() = poziția max
+        axis=1                           # x.index[...] = numele coloanei
+    )
+    
+    dominant.name = "Activitate_Dominanta"
+    
+    print(f"🏆 Activități dominante găsite pentru {len(dominant)} grupe")
+    print(f"   Distribuție: \n{dominant.value_counts()}")
+    
+    return dominant
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                    7. FUNCȚII DE CALCUL INDICI
+# ═══════════════════════════════════════════════════════════════════════════
+
+def calculeaza_indice_localizare(df_judet: pd.DataFrame,
+                                 coloane_activitati: List[str],
+                                 col_populatie: str = 'Populatie') -> pd.DataFrame:
+    """
+    📍 INDICE DE LOCALIZARE (Location Quotient)
+    
+    📥 INPUT:
+        - df_judet: DataFrame agregat la nivel județ cu:
+            * Coloane pentru fiecare activitate (angajați)
+            * Coloană cu populația
+        - coloane_activitati: Lista cu coloanele de activități
+        - col_populatie: Numele coloanei cu populația
+    
+    📤 OUTPUT:
+        - DataFrame cu indicii de localizare pentru fiecare județ×activitate
+    
+    📊 VIZUAL & EXPLICAȚIE:
+        
+        ╔═══════════════════════════════════════════════════════════╗
+        ║  CE MĂSOARĂ?                                              ║
+        ║  Dacă un județ e SPECIALIZAT într-o anumită industrie    ║
+        ╚═══════════════════════════════════════════════════════════╝
+        
+        Formula:
+        IL = (Angajați_Județ_X_Industria_Y / Total_Angajați_Județ_X) 
+             ÷
+             (Angajați_Național_Industria_Y / Total_Angajați_Național)
+        
+        SAU mai simplu:
+        IL = (Pondere_Județ_în_Industrie) / (Pondere_Județ_în_Populație)
+        
+        INTERPRETARE:
+        ┌──────────────┬─────────────────────────────────────┐
+        │ IL > 1       │ Județ SPECIALIZAT (peste medie)    │
+        │ IL = 1       │ La nivelul mediei naționale         │
+        │ IL < 1       │ Sub medie națională                 │
+        └──────────────┴─────────────────────────────────────┘
+        
+        EXEMPLU CONCRET:
+        Județ X: 3000 angajați carne din 100000 total angajați (3%)
+        Național: 20000 angajați carne din 500000 total angajați (4%)
+        IL = 3% / 4% = 0.75 < 1 → SUB MEDIE (nu e specializat)
+        
+        Județ Y: 8000 angajați carne din 100000 total angajați (8%)
+        Național: 20000 angajați carne din 500000 total angajați (4%)
+        IL = 8% / 4% = 2 > 1 → SPECIALIZAT (de 2× peste medie!)
+    
+    🎯 CÂND O FOLOSEȘTI:
+        - "Calculați indicii de localizare la nivel de județ"
+        - "Care județe sunt specializate în care industrii?"
+        - Analiză de specializare regională
+    
+    💡 EXEMPLU:
+        indici = calculeaza_indice_localizare(
+            df_judet, 
+            ['Carne', 'Peste', 'Lactate'], 
+            'Populatie'
+        )
+    """
+    # 1. Calculăm totalurile naționale
+    total_national = df_judet.sum(axis=0)
+    
+    print(f"📍 Calcul indici localizare...")
+    print(f"   Total național angajați: {total_national[coloane_activitati].sum():,.0f}")
+    print(f"   Total național populație: {total_national[col_populatie]:,.0f}")
+    
+    # 2. Calculăm indicele pentru fiecare județ și activitate
+    indici = df_judet[coloane_activitati].apply(
+        lambda x: (
+            (x / total_national[coloane_activitati]) /  # Pondere în activitate
+            (df_judet.loc[x.name, col_populatie] / total_national[col_populatie])  # Pondere populație
+        ),
+        axis=1
+    )
+    
+    # 3. Gestionăm diviziuni la 0
+    indici = indici.replace([np.inf, -np.inf], 0)
+    indici = indici.fillna(0)
+    
+    # 4. Statistici
+    print(f"   Range indici: [{indici.min().min():.2f}, {indici.max().max():.2f}]")
+    print(f"   Județe specializate (IL>1): {(indici > 1).sum().sum()} cazuri")
+    
+    return indici
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                    8. FUNCȚII DE SORTARE ȘI EXPORT
+# ═══════════════════════════════════════════════════════════════════════════
+
+def sorteaza_si_salveaza(date: Union[pd.DataFrame, pd.Series],
+                        filepath: str,
+                        ascending: bool = False,
+                        col_sortare: str = None) -> None:
+    """
+    💾 SORTEAZĂ ȘI SALVEAZĂ REZULTATUL
+    
+    📥 INPUT:
+        - date: DataFrame sau Series de salvat
+        - filepath: Calea fișierului output (ex: "data_out/Cerinta1.csv")
+        - ascending: True = crescător, False = descrescător
+        - col_sortare: Coloana de sortare (doar pentru DataFrame)
+    
+    📤 OUTPUT:
+        - Fișier CSV salvat (nu returnează nimic)
+    
+    📊 VIZUAL:
+        Date nesortate  →  Sortare  →  Export CSV
+        ┌──────┬──────┐   ┌──────┬──────┐
+        │Județ │Valoare│   │Județ │Valoare│
+        ├──────┼──────┤   ├──────┼──────┤
+        │ CJ   │ 0.15 │   │ BUC  │ 0.30 │ ↓ Descrescător
+        │ BUC  │ 0.30 │   │ TM   │ 0.20 │
+        │ TM   │ 0.20 │   │ CJ   │ 0.15 │
+        └──────┴──────┘   └──────┴──────┘
+    
+    💡 EXEMPLU:
+        # Pentru Series
+        sorteaza_si_salveaza(pondere_judete, "data_out/Cerinta3.csv", 
+                            ascending=False)
+        
+        # Pentru DataFrame
+        sorteaza_si_salveaza(df_rezultat, "data_out/Cerinta1.csv",
+                            ascending=False, col_sortare='Populatie')
+    """
+    date_sortate = date.copy()
+    
+    # Sortăm
+    if isinstance(date, pd.Series):
+        date_sortate = date_sortate.sort_values(ascending=ascending)
+    else:
+        if col_sortare:
+            date_sortate = date_sortate.sort_values(by=col_sortare, ascending=ascending)
+        else:
+            print("⚠️  DataFrame fără coloană de sortare specificată - nu sortez")
+    
+    # Salvăm
+    date_sortate.to_csv(filepath)
+    
+    directie = "crescător" if ascending else "descrescător"
+    print(f"💾 Salvat: {filepath}")
+    print(f"   {len(date_sortate)} rânduri, sortat {directie}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                    9. WORKFLOW COMPLET - TEMPLATE REZOLVARE
+# ═══════════════════════════════════════════════════════════════════════════
+
+def template_cerinta_standard(
+    df_principal: pd.DataFrame,
+    df_secundar: pd.DataFrame = None,
+    coloane_lucru: List[str] = None,
+    tip_operatie: str = 'filtrare',
+    parametri: dict = None,
+    output_file: str = None
+) -> Union[pd.DataFrame, pd.Series]:
+    """
+    🎯 TEMPLATE GENERIC PENTRU CERINȚE
+    
+    Acest template acoperă majoritatea pattern-urilor de cerințe.
+    Adaptează parametrii în funcție de cerință.
+    
+    📥 INPUT:
+        - df_principal: DataFrame-ul principal
+        - df_secundar: DataFrame secundar pentru merge (optional)
+        - coloane_lucru: Coloanele pe care lucrăm
+        - tip_operatie: Tipul operației:
+            * 'filtrare' - elimină rânduri
+            * 'normalizare' - transformă în procente
+            * 'pondere' - calculează raport
+            * 'agregare' - groupby + sum/mean
+            * 'dominant' - găsește max per grup
+            * 'indice' - calcul indici localizare
+        - parametri: Dicționar cu parametri specifici
+        - output_file: Fișier de output (optional)
+    
+    📤 OUTPUT:
+        - DataFrame sau Series cu rezultatul
+    
+    💡 VEZI SECȚIUNEA 10 PENTRU EXEMPLE COMPLETE
+    """
+    rezultat = None
+    
+    if tip_operatie == 'filtrare':
+        rezultat = filtrare_suma_coloane_pozitiva(df_principal, coloane_lucru)
+    
+    elif tip_operatie == 'normalizare':
+        rezultat = normalizare_pe_rand(df_principal, coloane_lucru)
+    
+    elif tip_operatie == 'pondere':
+        if df_secundar is not None:
+            df_merge = merge_safe(df_principal, df_secundar, **parametri.get('merge', {}))
+            rezultat = calculeaza_pondere(
+                df_merge,
+                parametri['col_numerator'],
+                parametri['col_denominator']
+            )
+        else:
+            rezultat = calculeaza_pondere(
+                df_principal,
+                parametri['col_numerator'],
+                parametri['col_denominator']
+            )
+    
+    elif tip_operatie == 'agregare':
+        rezultat = agregare_simpla(
+            df_principal,
+            parametri['col_grupare'],
+            coloane_lucru,
+            parametri.get('functie', 'sum')
+        )
+    
+    elif tip_operatie == 'dominant':
+        rezultat = gaseste_dominant_pe_grup(
+            df_principal,
+            parametri['col_grupare'],
+            coloane_lucru
+        )
+    
+    elif tip_operatie == 'indice':
+        rezultat = calculeaza_indice_localizare(
+            df_principal,
+            coloane_lucru,
+            parametri.get('col_populatie', 'Populatie')
+        )
+    
+    # Salvăm dacă e specificat
+    if output_file and rezultat is not None:
+        if parametri and parametri.get('sorteaza', False):
+            sorteaza_si_salveaza(
+                rezultat,
+                output_file,
+                parametri.get('ascending', False)
+            )
+        else:
+            rezultat.to_csv(output_file)
+            print(f"💾 Salvat: {output_file}")
+    
+    return rezultat
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                10. REZOLVĂRI COMPLETE - COPY-PASTE READY
+# ═══════════════════════════════════════════════════════════════════════════
+
+def rezolva_toate_cerintele():
+    """
+    🎯 REZOLVARE COMPLETĂ - ADAPTEAZĂ PENTRU EXAMENUL TĂU
+    
+    Aici ai toate cele 6 cerințe rezolvate PAS CU PAS.
+    Copiază și adaptează la datele tale!
+    """
+    
+    print("="*80)
+    print("🚀 START REZOLVARE EXAMEN")
+    print("="*80)
+    
+    # ─────────────────────────────────────────────────────────────
+    # ÎNCĂRCARE DATE
+    # ─────────────────────────────────────────────────────────────
+    print("\n📂 ÎNCĂRCARE DATE...")
+    
+    industria_alimentara = incarca_csv_safe("data_in/IndustriaAlimentara.csv", index_col=0)
+    populatia = incarca_csv_safe("data_in/PopulatieLocalitati.csv", index_col=0)
+    coduri_judete = incarca_csv_safe("data_in/Coduri_judete.csv", index_col=0)
+    
+    if any(df is None for df in [industria_alimentara, populatia, coduri_judete]):
+        print("❌ EROARE: Nu s-au putut încărca toate fișierele!")
+        return
+    
+    # Identificăm coloanele cu industrii
+    industrii = list(industria_alimentara.columns)[1:]  # Skip 'Localitate'
+    print(f"✅ Industrii identificate: {industrii}")
+    
+    # ─────────────────────────────────────────────────────────────
+    # CERINȚA 1: Filtrare localități cu angajați > 0
+    # ─────────────────────────────────────────────────────────────
+    print("\n" + "="*80)
+    print("📌 CERINȚA 1: Filtrare localități cu angajați > 0")
+    print("="*80)
+    
+    cerinta1 = filtrare_suma_coloane_pozitiva(
+        industria_alimentara,
+        industrii
+    )
+    sorteaza_si_salveaza(cerinta1, "data_out/Cerinta1.csv")
+    
+    # ─────────────────────────────────────────────────────────────
+    # CERINȚA 2: Procente pe activități
+    # ─────────────────────────────────────────────────────────────
+    print("\n" + "="*80)
+    print("📌 CERINȚA 2: Calcul procente pe fiecare activitate")
+    print("="*80)
+    
+    cerinta2 = normalizare_pe_rand(
+        industria_alimentara,
+        industrii,
+        inlocuire_nan=0
+    )
+    # Adăugăm coloana Localitate
+    cerinta2.insert(0, "Localitate", industria_alimentara["Localitate"])
+    
+    cerinta2.to_csv("data_out/Cerinta2.csv")
+    print(f"💾 Salvat: data_out/Cerinta2.csv")
+    
+    # ─────────────────────────────────────────────────────────────
+    # CERINȚA 3: Pondere angajați în populație (pe județe)
+    # ─────────────────────────────────────────────────────────────
+    print("\n" + "="*80)
+    print("📌 CERINȚA 3: Pondere angajați/populație pe județe (sortat)")
+    print("="*80)
+    
+    # 1. Merge industrie + populație
+    industria_loc = merge_safe(
+        industria_alimentara,
+        populatia,
+        left_index=True,
+        right_index=True,
+        how='inner'
+    )
+    
+    # 2. Agregare la nivel județ
+    industria_judet = agregare_simpla(
+        industria_loc,
+        'Judet',
+        industrii + ['Populatie'],
+        'sum'
+    )
+    
+    # 3. Calculăm ponderea: total_angajați / populație
+    cerinta3 = industria_judet.apply(
+        lambda x: x[industrii].sum() / x['Populatie'],
+        axis=1
+    )
+    cerinta3.name = "Pondere"
+    
+    # 4. Sortăm descrescător și salvăm
+    sorteaza_si_salveaza(cerinta3, "data_out/Cerinta3.csv", ascending=False)
+    
+    # ─────────────────────────────────────────────────────────────
+    # CERINȚA 4: Activitatea dominantă pe județ
+    # ─────────────────────────────────────────────────────────────
+    print("\n" + "="*80)
+    print("📌 CERINȚA 4: Activitatea cu cei mai mulți angajați pe județ")
+    print("="*80)
+    
+    cerinta4 = gaseste_dominant_pe_grup(
+        industria_judet,
+        'Judet',
+        industrii
+    )
+    
+    cerinta4.to_csv("data_out/Cerinta4.csv")
+    print(f"💾 Salvat: data_out/Cerinta4.csv")
+    
+    # ─────────────────────────────────────────────────────────────
+    # CERINȚA 5: Media ponderată pe regiuni
+    # ─────────────────────────────────────────────────────────────
+    print("\n" + "="*80)
+    print("📌 CERINȚA 5: Media ponderată de angajați pe regiuni")
+    print("="*80)
+    
+    # 1. Merge cu coduri județe (adaugă regiunea)
+    industria_loc_reg = merge_safe(
+        industria_loc,
+        coduri_judete,
+        left_on='Judet',
+        right_index=True,
+        how='left'
+    )
+    
+    # 2. GroupBy pe regiune și aplică medie ponderată
+    cerinta5 = industria_loc_reg[industrii + ['Populatie', 'Regiune']].groupby(
+        by='Regiune'
+    ).apply(
+        medie_ponderata,
+        include_groups=False
+    )
+    
+    cerinta5.to_csv("data_out/Cerinta5.csv")
+    print(f"💾 Salvat: data_out/Cerinta5.csv")
+    
+    # ─────────────────────────────────────────────────────────────
+    # CERINȚA 6: Indici de localizare
+    # ─────────────────────────────────────────────────────────────
+    print("\n" + "="*80)
+    print("📌 CERINȚA 6: Indici de localizare pe județe")
+    print("="*80)
+    
+    cerinta6 = calculeaza_indice_localizare(
+        industria_judet,
+        industrii,
+        'Populatie'
+    )
+    
+    cerinta6.to_csv("data_out/Cerinta6.csv")
+    print(f"💾 Salvat: data_out/Cerinta6.csv")
+    
+    # ─────────────────────────────────────────────────────────────
+    # FINAL
+    # ─────────────────────────────────────────────────────────────
+    print("\n" + "="*80)
+    print("✅ TOATE CERINȚELE REZOLVATE CU SUCCES!")
+    print("="*80)
+    
+    # Verificare finală
+    import os
+    print("\n📋 VERIFICARE FIȘIERE GENERATE:")
+    for i in range(1, 7):
+        filepath = f"data_out/Cerinta{i}.csv"
+        if os.path.exists(filepath):
+            size = os.path.getsize(filepath)
+            df_check = pd.read_csv(filepath)
+            print(f"   ✅ Cerinta{i}.csv - {len(df_check)} rânduri, {size:,} bytes")
+        else:
+            print(f"   ❌ Cerinta{i}.csv - LIPSEȘTE!")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                        11. MAIN - PUNCTUL DE INTRARE
+# ═══════════════════════════════════════════════════════════════════════════
+
+if __name__ == "__main__":
+    """
+    🎯 MODUL DE UTILIZARE:
+    
+    1. PENTRU EXAMEN:
+       - Decomentează linia de mai jos
+       - Rulează scriptul: python template_examen.py
+       - Toate cerințele se rezolvă automat!
+    
+    2. PENTRU TESTARE PAS CU PAS:
+       - Comentează rezolva_toate_cerintele()
+       - Încarcă datele manual
+       - Apelează funcțiile individual
+    
+    3. PENTRU DEBUG:
+       - Folosește debug_df() după fiecare pas
+       - Folosește compara_before_after() pentru a vedea modificările
+    """
+    
+    # ══════════════════════════════════════════════════════════════
+    # OPȚIUNEA 1: REZOLVARE AUTOMATĂ (RECOMANDATĂ PENTRU EXAMEN)
+    # ══════════════════════════════════════════════════════════════
+    
+    rezolva_toate_cerintele()
+    
+    # ══════════════════════════════════════════════════════════════
+    # OPȚIUNEA 2: PAS CU PAS (PENTRU ÎNVĂȚARE/DEBUG)
+    # ══════════════════════════════════════════════════════════════
+    
+    # # Încarcă date
+    # df = incarca_csv_safe("data_in/IndustriaAlimentara.csv", index_col=0)
+    # debug_df(df, "Date Industrie")
+    # 
+    # # Filtrare
+    # df_filtrat = filtrare_suma_coloane_pozitiva(df, ['Carne', 'Peste'])
+    # compara_before_after(df, df_filtrat, "Filtrare")
+    # 
+    # # ... etc
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+#                        12. QUICK REFERENCE CARD
+# ═══════════════════════════════════════════════════════════════════════════
+
+"""
+╔══════════════════════════════════════════════════════════════════════════╗
+║                      QUICK REFERENCE - COPY-PASTE                        ║
+╚══════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 1. ÎNCĂRCARE & DEBUG                                                    │
+├─────────────────────────────────────────────────────────────────────────┤
+│ df = incarca_csv_safe("fisier.csv", index_col=0)                       │
+│ debug_df(df, "Nume descriptiv")                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 2. FILTRARE                                                             │
+├─────────────────────────────────────────────────────────────────────────┤
+│ # Elimină rânduri cu sumă = 0                                          │
+│ df_filtrat = filtrare_suma_coloane_pozitiva(df, ['Col1', 'Col2'])     │
+│                                                                          │
+│ # Multiple condiții                                                     │
+│ df_filtrat = filtrare_multipla_conditii(df, [                          │
+│     ('Populatie', '>', 10000),                                          │
+│     ('Judet', '==', 'BUC')                                             │
+│ ])                                                                       │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 3. NORMALIZARE (PROCENTE)                                               │
+├─────────────────────────────────────────────────────────────────────────┤
+│ df_procente = normalizare_pe_rand(df, ['Col1', 'Col2'], 0)            │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 4. PONDERE (RAPORT)                                                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│ pondere = calculeaza_pondere(df, 'Angajati', 'Populatie', 'Pondere')  │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│ 5. MERGE (JOIN)                                                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│ # Pe index                                                              │
+│ df_merge = merge
+
+
+Nu, se pare că s-a tăiat! 😅 Hai să-ți dau un rezumat **SUPER COMPACT** cu cele mai importante funcții pentru examen:
+
+---
+
+# 🎯 CHEAT SHEET ULTRA-COMPACT - FUNCȚII ESENȚIALE
+
+## 📋 TOP 10 FUNCȚII - COPY-PASTE READY
+
+### **1️⃣ ÎNCĂRCARE DATE**
+```python
+df = pd.read_csv("data_in/fisier.csv", index_col=0)
+# index_col=0 → prima coloană devine index
+```
+
+### **2️⃣ FILTRARE (elimină rânduri cu sumă = 0)**
+```python
+industrii = ['Carne', 'Peste', 'Lactate']
+suma = df[industrii].sum(axis=1)  # axis=1 = pe rânduri
+df_filtrat = df[suma > 0]
+```
+
+### **3️⃣ NORMALIZARE (valori → procente)**
+```python
+df_procente = df[industrii].apply(lambda x: x/x.sum(), axis=1)
+df_procente.fillna(0, inplace=True)  # ⚠️ OBLIGATORIU după împărțire!
+```
+
+### **4️⃣ MERGE (combină tabele)**
+```python
+# Pe INDEX (ambele tabele)
+df_complet = df1.merge(df2, left_index=True, right_index=True)
+
+# Pe COLOANĂ (df1) cu INDEX (df2)
+df_complet = df1.merge(df2, left_on='Judet', right_index=True)
+```
+
+### **5️⃣ AGREGARE (localități → județe)**
+```python
+df_judet = df[industrii + ['Populatie', 'Judet']].groupby('Judet').sum()
+```
+
+### **6️⃣ PONDERE (raport între două coloane)**
+```python
+pondere = df.apply(
+    lambda x: x[industrii].sum() / x['Populatie'],
+    axis=1
+)
+```
+
+### **7️⃣ GĂSEȘTE MAXIMUL (activitatea dominantă)**
+```python
+dominant = df[industrii].apply(
+    lambda x: x.index[x.argmax()],  # x.argmax() = poziția max
+    axis=1                           # x.index[...] = numele coloanei
+)
+```
+
+### **8️⃣ MEDIE PONDERATĂ**
+```python
+def medie_ponderata(t):
+    x = t.values
+    m = np.average(x[:, :-1], axis=0, weights=x[:, -1])
+    return pd.Series(m, t.columns[:-1])
+
+# Folosire:
+medii = df.groupby('Regiune').apply(medie_ponderata, include_groups=False)
+```
+
+### **9️⃣ INDICE LOCALIZARE**
+```python
+total_national = df_judet.sum(axis=0)
+
+indici = df_judet[industrii].apply(
+    lambda x: (x / total_national[industrii]) / 
+              (df_judet.loc[x.name, 'Populatie'] / total_national['Populatie']),
+    axis=1
+)
+```
+
+### **🔟 SORTARE + EXPORT**
+```python
+result.sort_values(ascending=False, inplace=True)  # Descrescător
+result.to_csv("data_out/Cerinta_X.csv")
+```
+
+---
+
+## 🚨 CELE MAI IMPORTANTE REGULI
+
+1. **După ORICE împărțire → `fillna(0)`**
+2. **axis=1** = pe rânduri (→), **axis=0** = pe coloane (↓)
+3. **Merge**: `left_index=True` SAU `left_on='Col'` (nu amesteca!)
+4. **GroupBy** schimbă nivelul (localități → județe)
+5. **argmax()** = poziția, **index[argmax()]** = numele
+
+---
+
+## 📝 TEMPLATE MINIMAL PENTRU ORICE CERINȚĂ
+
+```python
+import pandas as pd
+import numpy as np
+
+# 1. ÎNCĂRCARE
+df = pd.read_csv("data_in/IndustriaAlimentara.csv", index_col=0)
+populatie = pd.read_csv("data_in/PopulatieLocalitati.csv", index_col=0)
+industrii = ['Carne', 'Peste', 'LegumeFructe', 'Uleiuri', 
+             'Lactate', 'Morarit', 'Panificatie']
+
+# 2. MERGE (dacă e nevoie)
+df = df.merge(populatie, left_index=True, right_index=True)
+
+# 3. FILTRARE (dacă e nevoie)
+df = df[df[industrii].sum(axis=1) > 0]
+
+# 4. AGREGARE (dacă e nevoie)
+df_judet = df[industrii + ['Populatie', 'Judet']].groupby('Judet').sum()
+
+# 5. CALCUL
+result = df_judet.apply(lambda x: FORMULA_TA, axis=1)
+
+# 6. CURĂȚARE
+result.fillna(0, inplace=True)
+
+# 7. SORTARE + EXPORT
+result.sort_values(ascending=False, inplace=True)
+result.to_csv("data_out/Cerinta_X.csv")
+```
+
+---
+
+## 🎯 CELE 6 CERINȚE - REZUMAT ULTRA-SCURT
+
+```python
+# CERINȚA 1: Filtrare
+cerinta1 = df[df[industrii].sum(axis=1) > 0]
+
+# CERINȚA 2: Normalizare
+cerinta2 = df[industrii].apply(lambda x: x/x.sum(), axis=1)
+cerinta2.fillna(0, inplace=True)
+
+# CERINȚA 3: Pondere pe județe (sortată)
+df_judet = df.groupby('Judet').sum()
+cerinta3 = df_judet.apply(lambda x: x[industrii].sum()/x['Populatie'], axis=1)
+cerinta3.sort_values(ascending=False, inplace=True)
+
+# CERINȚA 4: Activitate dominantă
+cerinta4 = df_judet[industrii].apply(lambda x: x.index[x.argmax()], axis=1)
+
+# CERINȚA 5: Medie ponderată pe regiuni
+cerinta5 = df.groupby('Regiune').apply(medie_ponderata, include_groups=False)
+
+# CERINȚA 6: Indici localizare
+total = df_judet.sum(axis=0)
+cerinta6 = df_judet[industrii].apply(
+    lambda x: (x/total[industrii]) / (df_judet.loc[x.name,'Populatie']/total['Populatie']),
+    axis=1
+)
+```
+
+---
+
+**Asta e tot ce ai nevoie! Salvează asta și ai 90% din examen rezolvat! 🚀**
+
+**Mult succes! 💪🎓**
