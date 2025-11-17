@@ -1,0 +1,33 @@
+CODE,COUNTRY,POPULATION,EUROZONE,REGION
+AT,Austria,8401940,Euro,WesternE
+BE,Belgium,11000638,Euro,WesternE
+BG,Bulgaria,7364570,NonEuro,EasternE
+HR,Croatia,4284889,Euro,EasternE
+CY,Cyprus,840407,Euro,SouthernE
+CZ,Czechia,10436560,Euro,EasternE
+DK,Denmark,5560628,NonEuro,NorthernE
+EE,Estonia,1294455,Euro,EasternE
+FI,Finland,5375276,Euro,NorthernE
+FR,France,64933400,Euro,WesternE
+DE,Germany (until 1990 former territory of the FRG),80219695,Euro,WesternE
+EL,Greece,10816286,Euro,SouthernE
+HU,Hungary,9937628,NonEuro,EasternE
+IS,Iceland,315556,NonEuro,NorthernE
+IE,Ireland,4574888,Euro,WesternE
+IT,Italy,59433744,Euro,SouthernE
+LV,Latvia,2070371,Euro,EasternE
+LI,Liechtenstein,36149,Euro,WesternE
+LT,Lithuania,3043429,Euro,EasternE
+LU,Luxembourg,512353,Euro,WesternE
+MT,Malta,417432,Euro,SouthernE
+NL,Netherlands,16655799,Euro,WesternE
+NO,Norway,4979954,NonEuro,NorthernE
+PL,Poland,38044565,NonEuro,EasternE
+PT,Portugal,10562178,Euro,SouthernE
+RO,Romania,20121641,NonEuro,EasternE
+SK,Slovakia,5397036,Euro,EasternE
+SI,Slovenia,2050189,Euro,EasternE
+ES,Spain,46815910,Euro,SouthernE
+SE,Sweden,9482855,NonEuro,NorthernE
+CH,Switzerland,7954662,NonEuro,WesternE
+UK,United Kingdom,63182180,NonEuro,WesternE
