@@ -1,0 +1,260 @@
+```python
+import numpy as np
+import pandas as pd
+import os
+
+# ============================================================================
+# CONFIGURARE INIȚIALĂ
+# ============================================================================
+
+# Creare director pentru output
+os.makedirs("data_out", exist_ok=True)
+
+# ============================================================================
+# CITIRE DATE
+# ============================================================================
+
+# TODO: Adaptează numele fișierelor și coloanele de index
+df_principal = pd.read_csv("data_in/Fisier_Principal.csv", index_col=0)
+df_secundar = pd.read_csv("data_in/Fisier_Secundar.csv", index_col=0)
+
+# TODO: Definește lista de coloane numerice (activități/industrii/ani etc.)
+coloane_numerice = ['Coloana1', 'Coloana2', 'Coloana3']
+
+# ============================================================================
+# FUNCȚII UTILE
+# ============================================================================
+
+def medie_ponderata(t: pd.DataFrame):
+    """
+    Calculează media ponderată pe coloana ultimă
+    Folosit cu groupby().apply()
+    """
+    x = t.values
+    m = np.average(x[:, :-1], axis=0, weights=x[:, -1])
+    return pd.Series(m, t.columns[:-1])
+
+
+def raport_localizare(x, total_regional, total_national):
+    """
+    Calculează coeficientul de localizare/specializare
+    Formula: (Valoare_regiune / Total_regiune) / (Valoare_națională / Total_național)
+    """
+    return (x / total_regional) / (total_national[x.name] / total_national.sum())
+
+
+# ============================================================================
+# CERINȚA 1: Sumă/Medie pe rânduri (nivel localitate/țară)
+# ============================================================================
+print("Procesare cerința 1...")
+
+# Variantă A: Suma pe rânduri
+total_rand = df_principal[coloane_numerice].sum(axis=1)
+
+# Variantă B: Media pe rânduri
+# medie_rand = df_principal[coloane_numerice].mean(axis=1)
+
+cerinta1 = pd.DataFrame({
+    'Index': df_principal.index,
+    'Nume': df_principal['Nume_Coloana'],
+    'Total': total_rand
+})
+cerinta1.to_csv("data_out/Cerinta1.csv", index=False)
+print("✓ Cerinta1.csv creat!")
+
+
+# ============================================================================
+# CERINȚA 2: Pondere/Normalizare pe rânduri
+# ============================================================================
+print("Procesare cerința 2...")
+
+# Calculăm ponderea fiecărei coloane din total rând
+cerinta2 = df_principal[coloane_numerice].apply(
+    func=lambda x: x / x.sum(), 
+    axis=1
+)
+
+# Adăugăm coloana de identificare
+cerinta2.insert(0, "Nume", df_principal["Nume_Coloana"])
+
+# Înlocuim NaN cu 0 (diviziune la 0)
+cerinta2.fillna(0, inplace=True)
+
+cerinta2.to_csv("data_out/Cerinta2.csv")
+print("✓ Cerinta2.csv creat!")
+
+
+# ============================================================================
+# CERINȚA 3: Join și calcul raportat la altă variabilă (ex: per capita)
+# ============================================================================
+print("Procesare cerința 3...")
+
+# Join între DataFrame-uri (merge)
+df_combinat = df_principal.merge(
+    df_secundar, 
+    left_index=True, 
+    right_index=True,
+    how='inner'  # sau 'left', 'right', 'outer'
+)
+
+# Calculăm valoare pe locuitor/per capita
+df_combinat['Valoare_Per_Capita'] = (
+    df_combinat[coloane_numerice].sum(axis=1) / df_combinat['Populatie']
+)
+
+# Sortare descrescătoare
+cerinta3 = df_combinat[['Nume_Coloana', 'Valoare_Per_Capita']].sort_values(
+    by='Valoare_Per_Capita', 
+    ascending=False
+)
+
+cerinta3.to_csv("data_out/Cerinta3.csv")
+print("✓ Cerinta3.csv creat!")
+
+
+# ============================================================================
+# CERINȚA 4: Agregare la nivel superior (județ/regiune) cu groupby
+# ============================================================================
+print("Procesare cerința 4...")
+
+# Join pentru a avea coloana de grupare
+df_cu_grup = df_principal.merge(
+    df_secundar[['Grup']],  # ex: 'Judet', 'Regiune', 'REGION'
+    left_index=True,
+    right_index=True
+)
+
+# Agregare pe grup (sumă)
+cerinta4 = df_cu_grup[coloane_numerice + ['Grup']].groupby(by='Grup').sum()
+
+# Alte agregări posibile:
+# .mean() - medie
+# .count() - numărare
+# .max() - maxim
+# .min() - minim
+
+cerinta4.to_csv("data_out/Cerinta4.csv")
+print("✓ Cerinta4.csv creat!")
+
+
+# ============================================================================
+# CERINȚA 5: Identificare coloană cu valoare maximă/minimă (argmax/argmin)
+# ============================================================================
+print("Procesare cerința 5...")
+
+# Găsim coloana cu valoarea maximă pentru fiecare rând
+coloana_dominanta = df_principal[coloane_numerice].idxmax(axis=1)
+
+# Pentru minim: .idxmin(axis=1)
+
+cerinta5 = pd.DataFrame({
+    'Index': df_principal.index,
+    'Nume': df_principal['Nume_Coloana'],
+    'Coloana_Dominanta': coloana_dominanta
+})
+
+cerinta5.to_csv("data_out/Cerinta5.csv", index=False)
+print("✓ Cerinta5.csv creat!")
+
+
+# ============================================================================
+# CERINȚA 6: Filtrare cu condiții (masking)
+# ============================================================================
+print("Procesare cerința 6...")
+
+# Cream o mască booleană
+total = df_principal[coloane_numerice].sum(axis=1)
+masca = total > 0  # sau orice altă condiție
+
+# Filtrăm DataFrame-ul
+df_filtrat = df_principal[masca]
+
+# Alte exemple de condiții:
+# masca = (df_principal['Coloana'] > 100) & (df_principal['Coloana'] < 1000)
+# masca = df_principal['Coloana'].isin(['Valoare1', 'Valoare2'])
+
+df_filtrat.to_csv("data_out/Cerinta6.csv")
+print("✓ Cerinta6.csv creat!")
+
+
+# ============================================================================
+# CERINȚA 7: Aplicare funcție custom cu apply + groupby
+# ============================================================================
+print("Procesare cerința 7...")
+
+# Calculăm medie ponderată pe grupuri
+cerinta7 = df_combinat[coloane_numerice + ['Populatie', 'Grup']].groupby(
+    by='Grup'
+).apply(
+    func=medie_ponderata, 
+    include_groups=False
+)
+
+cerinta7.to_csv("data_out/Cerinta7.csv")
+print("✓ Cerinta7.csv creat!")
+
+
+# ============================================================================
+# CERINȚA 8: Sortare complexă
+# ============================================================================
+print("Procesare cerința 8...")
+
+# Sortare după mai multe coloane
+cerinta8 = df_principal.sort_values(
+    by=['Coloana1', 'Coloana2'],
+    ascending=[False, True]  # Prima desc, a doua asc
+)
+
+cerinta8.to_csv("data_out/Cerinta8.csv")
+print("✓ Cerinta8.csv creat!")
+
+
+# ============================================================================
+# CERINȚA 9: Coeficient de localizare/specializare
+# ============================================================================
+print("Procesare cerința 9...")
+
+# Agregare la nivel național
+total_national = cerinta4.sum(axis=0)
+
+# Calculăm coeficientul pentru fiecare grup
+cerinta9 = cerinta4[coloane_numerice].apply(
+    lambda x: (x / total_national[coloane_numerice]) / 
+              (cerinta4.loc[x.name, 'Total_Grup'] / total_national['Total_Grup']),
+    axis=1
+)
+
+cerinta9.to_csv("data_out/Cerinta9.csv")
+print("✓ Cerinta9.csv creat!")
+
+
+# ============================================================================
+# CERINȚA 10: Operații pe coloane (transformări)
+# ============================================================================
+print("Procesare cerința 10...")
+
+# Convertire la numeric cu gestionarea erorilor
+for col in coloane_numerice:
+    df_principal[col] = pd.to_numeric(df_principal[col], errors='coerce')
+
+# Înlocuire valori NaN
+df_principal.fillna(0, inplace=True)
+# sau: df_principal.fillna(df_principal.mean(), inplace=True)
+
+# Creare coloane noi calculate
+df_principal['Coloana_Noua'] = df_principal['Col1'] + df_principal['Col2']
+
+# Drop coloane
+# df_principal.drop(columns=['Coloana_Veche'], inplace=True)
+
+df_principal.to_csv("data_out/Cerinta10.csv")
+print("✓ Cerinta10.csv creat!")
+
+
+# ============================================================================
+# FINALIZARE
+# ============================================================================
+print("\n" + "="*70)
+print("✓✓✓ TOATE CERINȚELE AU FOST PROCESATE CU SUCCES! ✓✓✓")
+print("="*70)
+```
