@@ -1,7 +1,11 @@
+import numpy as np
 import pandas as pd
 import io
+import seaborn as sb
+from matplotlib import pyplot as plt
 
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.metrics import confusion_matrix, accuracy_score, silhouette_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
@@ -60,8 +64,52 @@ modelADL.fit(x_train,y_train)
 
 
 #scoruri
-X_train_LDA=modelADL.transform(x_train)
-X_test_LDA=modelADL.transform(x_test)
+X_train_lda=modelADL.transform(x_train)
+X_test_lda=modelADL.transform(x_test)
 
+df_XTtrainLDA = pd.DataFrame(
+    X_train_lda,
+    columns=["LD" + str(i+1) for i in range(X_train_lda.shape[1])]
+)
+df_XTtrainLDA.to_csv("XTrainLDA.csv", index=False)
 
+df_XTestLDA = pd.DataFrame(
+    X_test_lda,
+    columns=["LD" + str(i+1) for i in range(X_test_lda.shape[1])]
+)
+df_XTestLDA.to_csv("XTestLDA.csv", index=False)
 
+# Evaluarea model
+Y_pred = modelADL.predict(x_test)
+
+variance = modelADL.explained_variance_ratio_
+print("Variatia: ", variance)
+
+matrice_confuzie = confusion_matrix(y_test, Y_pred)
+df_matrice = pd.DataFrame(
+    matrice_confuzie,
+    index=np.unique(y_test),
+    columns=np.unique(y_test)
+)
+df_matrice.to_csv("MatriceConfuzie.csv")
+
+acuratetea = accuracy_score(y_test, Y_pred)
+print("Acuratetea: ", acuratetea)
+
+acuratetea_per_class = matrice_confuzie.diagonal() / matrice_confuzie.sum(axis=1)
+acurateteaMedie = np.mean(acuratetea_per_class)
+print("Acuratetea medie: ", acurateteaMedie)
+
+# Predictii pe setul apply
+df_apply_clean=pd.read_csv("newemp.csv")
+Y_apply = modelADL.predict(X_apply)
+df_apply_clean["Departament"] = Y_apply
+df_apply_clean.to_csv("ApplyPredicted.csv")
+
+silhouetteScore = silhouette_score(X_test_lda, y_test)
+print("Scor Silhouette: ", silhouetteScore)
+
+for label in np.unique(y_train):
+    sb.kdeplot(X_train_lda[y_train == label, 0], label = label)
+plt.title("Distributia pe axele discriminante")
+plt.show()
