@@ -1,3 +1,5 @@
+from unittest import case
+
 import pandas as pd
 import numpy as np
 
@@ -123,10 +125,17 @@ print(angajati_pd['Nume'][angajati_pd['Oras']=='Brasov'].__len__())
 
 print(vanzari_pd)
 print(vanzari_pd['Preturi'].str.split())
-#print(vanzari_pd['Preturi'].astype(int).groupby('Produs')['Preturi'].mean())
-vanzari_pd['Preturi']=vanzari_pd['Preturi'].astype(int)
-df['Preturi']
-print(vanzari_pd.dtypes)
+# #print(vanzari_pd['Preturi'].astype(int).groupby('Produs')['Preturi'].mean())
+# vanzari_pd['Preturi']=vanzari_pd['Preturi'].astype(int)
+# #df['Preturi']
+# print(vanzari_pd.dtypes)
+
+#vanzari_pd['Pret_mediu']=vanzari_pd['Preturi'].apply(lambda x: sum(map(float,x.split(',')))/len(x.split(',')))
+#print(vanzari_pd['Pret_mediu'])
+
+v=vanzari_pd['Preturi'].apply(lambda x:x.split(','))
+
+
 
 
 #
@@ -299,3 +308,86 @@ print(vanzari_pd.dtypes)
 # Calculează procentul din cifra totală pentru fiecare activitate în fiecare localitate
 # Sortează localitățile după cifra totală descrescător
 # Salvează top 10 localități în top_localitati.csv
+
+
+
+
+
+
+
+
+#
+# 🎯 PARTEA 1: APPLY & LAMBDA (Fără GroupBy)
+# Ex 1.1: Apply Simplu - Conversie
+# Dificultate: ⭐
+# Citește Vanzari.csv și:
+#
+# Transformă toate produsele în UPPERCASE
+# Calculează lungimea numelui fiecărui produs
+# Afișează rezultatul
+
+vanzari_pd['Produs_u']=vanzari_pd['Produs'].apply(lambda x:x.upper())
+vanzari_pd['Produs_l']=vanzari_pd['Produs'].apply(lambda x:len(x))
+print(vanzari_pd[['Produs','Produs_u','Produs_l']])
+
+
+# Ex 1.2: Apply cu Split - Sumă
+# Dificultate: ⭐⭐
+# Citește Vanzari.csv și:
+#
+# Split coloana Preturi și calculează suma prețurilor pentru fiecare produs
+# Split coloana Cantitati și calculează suma cantităților
+# Salvează: Produs, Total_Preturi, Total_Cantitati
+
+vanzari_pd['P']=vanzari_pd['Preturi'].apply(lambda x:sum(map(float,x.split(','))))
+print(vanzari_pd[['Preturi','P']])
+vanzari_pd['C']=vanzari_pd['Cantitati'].apply(lambda x:sum(map(float,x.split(','))))
+print(vanzari_pd[['Cantitati','C']])
+
+
+# Ex 1.3: Apply - Calcule Multiple
+# Dificultate: ⭐⭐
+# Citește Angajati.csv și:
+#
+# Calculează suma bonusurilor pentru fiecare angajat
+# Calculează numărul de bonusuri primite
+# Calculează bonusul mediu per angajat
+# Afișează: Nume, Total_Bonusuri, Nr_Bonusuri, Bonus_Mediu
+
+angajati_pd['B']=angajati_pd['Bonusuri'].apply(lambda x:sum(map(float,x.split(','))))
+print(angajati_pd[['Bonusuri','B']])
+angajati_pd['count']=angajati_pd['Bonusuri'].apply(lambda x:len(x.split(',')))
+print(angajati_pd[['Bonusuri','B','count']])
+angajati_pd['mediu']=angajati_pd['Bonusuri'].apply(lambda x:sum(map(float,x.split(',')))/len(x.split(',')))
+print(angajati_pd[['Bonusuri','B','count','mediu']])
+
+
+# Ex 1.4: Apply cu Condiții
+# Dificultate: ⭐⭐
+# Citește Vanzari.csv și:
+#
+# Calculează prețul mediu pentru fiecare produs
+# Creează coloana Categorie_Pret cu:
+#
+# "Ieftin" dacă preț mediu < 500
+# "Mediu" dacă 500 ≤ preț mediu < 1000
+# "Scump" dacă preț mediu ≥ 1000
+#
+#
+# Afișează rezultatul
+vanzari_pd['mediu']=vanzari_pd['Preturi'].apply(lambda x:sum(map(float,x.split(',')))/len(x.split(',')))
+print(vanzari_pd['mediu'])
+vanzari_pd['caz']=vanzari_pd['mediu'].apply(lambda x: 'ieftin' if x<500 else('medium' if ((x>=500.0) & (x<1000.0)) else 'scump'))
+print(vanzari_pd[['caz','mediu']])
+
+
+
+
+# Ex 1.5: Apply pe Rânduri (axis=1)
+# Dificultate: ⭐⭐⭐
+# Citește Vanzari.csv și:
+#
+# Calculează Total_Preturi și Total_Cantitati (ca la Ex 1.2)
+# Folosind apply pe rânduri, calculează venitul: Venit = Total_Preturi * Total_Cantitati / Total_Cantitati (simplificat: doar Total_Preturi, dar înmulțește cu cantitatea medie)
+# Mai corect: Venit = (Total_Preturi / Nr_Preturi) * Total_Cantitati
+
