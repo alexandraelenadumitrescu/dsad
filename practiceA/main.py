@@ -391,3 +391,7 @@ print(vanzari_pd[['caz','mediu']])
 # Folosind apply pe rânduri, calculează venitul: Venit = Total_Preturi * Total_Cantitati / Total_Cantitati (simplificat: doar Total_Preturi, dar înmulțește cu cantitatea medie)
 # Mai corect: Venit = (Total_Preturi / Nr_Preturi) * Total_Cantitati
 
+vanzari_pd['total_preturi']=vanzari_pd['Preturi'].apply(lambda x:sum(map(float,x.split(','))))
+vanzari_pd['total_cantitati']=vanzari_pd['Cantitati'].apply(lambda x:sum(map(float,x.split(','))))
+print(vanzari_pd['total_preturi'])
+print(vanzari_pd['total_cantitati'])
