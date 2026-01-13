@@ -395,3 +395,5 @@ vanzari_pd['total_preturi']=vanzari_pd['Preturi'].apply(lambda x:sum(map(float,x
 vanzari_pd['total_cantitati']=vanzari_pd['Cantitati'].apply(lambda x:sum(map(float,x.split(','))))
 print(vanzari_pd['total_preturi'])
 print(vanzari_pd['total_cantitati'])
+vanzari_pd['venit']=vanzari_pd['total_preturi']*vanzari_pd['total_cantitati']
+print(vanzari_pd['venit'])
