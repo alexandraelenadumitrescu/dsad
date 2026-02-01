@@ -164,6 +164,7 @@ import numpy as np
 import pandas as pd
 
 div = pd.read_csv("diversitateGENERAT.csv")
+cod=pd.read_csv("source.csv")
 ani = [str(an) for an in range(2008, 2022)]
 
 div['are_zero'] = (div[ani] == 0).any(axis=1)  # axis=1 !!!
@@ -173,3 +174,27 @@ cerinta1 = div_zero[['Siruta', 'City'] + ani].copy()
 cerinta1.to_csv("Cerinta1.csv", index=False)  # index=False !!!
 
 
+
+merged=div.merge(cod,how="left",on='Siruta')
+judete=merged.groupby('Judet')
+print(merged.head(5))
+print("---------")
+print(judete.head(5))
+
+
+merged['medie']=merged[ani].mean(axis=1)
+print(merged)
+
+
+idmax=merged.groupby('Judet')['medie'].idxmax()
+
+cerinta2 = merged.loc[idmax, ['Judet', 'City', 'medie']]
+cerinta2.columns = ['Judet', 'Localitate', 'medie']
+
+print("Rezultat final (câștigători pe județe):")
+print(cerinta2)
+print()
+
+# Salvăm
+cerinta2.to_csv('Cerinta2.csv', index=False)
+print("✅ Salvat în Cerinta2.csv")
