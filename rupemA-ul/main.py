@@ -171,3 +171,5 @@ div_zero = div[div['are_zero']]
 
 cerinta1 = div_zero[['Siruta', 'City'] + ani].copy()
 cerinta1.to_csv("Cerinta1.csv", index=False)  # index=False !!!
+
+
