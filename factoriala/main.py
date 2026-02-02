@@ -127,3 +127,22 @@ df_scoruri=pd.DataFrame(
 df_scoruri.to_csv("data_out/Scoruri.csv")
 
 
+# Add this to your code
+plt.figure(figsize=(10, 8))
+plt.scatter(df_scoruri['S1'], df_scoruri['S2'], alpha=0.7)
+plt.xlabel('Factor Score 1')
+plt.ylabel('Factor Score 2')
+plt.title('Plot of Factor Scores')
+plt.axhline(0, color='red', linestyle='--')
+plt.axvline(0, color='red', linestyle='--')
+plt.savefig("data_out/Plot_Scoruri.png")
+
+
+# Corelograma comunalități și varianță specifică
+plt.figure(figsize=(10, 6))
+data_heatmap = np.vstack([comunalitati, varianta_specifica])
+sns.heatmap(data_heatmap, annot=True, cmap="RdYlGn",
+            xticklabels=indici_diversitate.columns,
+            yticklabels=['Comunalități', 'Varianță specifică'])
+plt.savefig("data_out/Corelograma_Comunalitati.png")
+
